@@ -1,0 +1,12 @@
+package com.project.pstu_map.dto;
+
+import lombok.Data;
+
+@Data
+public class EdgeDto
+{
+    private String from;
+    private String to;
+    private double weight;
+    private String type;
+}

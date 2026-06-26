@@ -1,0 +1,1281 @@
+{
+  "meta": {
+    "building": "УНИИT (ПГТУ — филиал НИУ МГСУ)",
+    "units": "meters",
+    "building_length_m": 90.0,
+    "building_depth_m": 14.0
+  },
+  "floors": [
+    {
+      "number": 2,
+      "title": "Кафедра IT",
+      "image": "floor_2"
+    },
+    {
+      "number": 3,
+      "title": "Архитектуры и строительства",
+      "image": "floor_3"
+    },
+    {
+      "number": 4,
+      "title": "Кафедра физики и математики, социально-гуманитарный",
+      "image": "floor_4"
+    },
+    {
+      "number": 5,
+      "title": "Общие лекционные аудитории",
+      "image": "floor_5"
+    }
+  ],
+  "default_start": "r2_0",
+  "nodes": [
+    {
+      "id": "c2_0",
+      "floor": 2,
+      "x": 0.06,
+      "y": 0.5
+    },
+    {
+      "id": "c2_1",
+      "floor": 2,
+      "x": 0.14,
+      "y": 0.5
+    },
+    {
+      "id": "c2_2",
+      "floor": 2,
+      "x": 0.22,
+      "y": 0.5
+    },
+    {
+      "id": "c2_3",
+      "floor": 2,
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "id": "c2_4",
+      "floor": 2,
+      "x": 0.38,
+      "y": 0.5
+    },
+    {
+      "id": "c2_5",
+      "floor": 2,
+      "x": 0.46,
+      "y": 0.5
+    },
+    {
+      "id": "c2_6",
+      "floor": 2,
+      "x": 0.54,
+      "y": 0.5
+    },
+    {
+      "id": "c2_7",
+      "floor": 2,
+      "x": 0.62,
+      "y": 0.5
+    },
+    {
+      "id": "c2_8",
+      "floor": 2,
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "id": "c2_9",
+      "floor": 2,
+      "x": 0.78,
+      "y": 0.5
+    },
+    {
+      "id": "c2_10",
+      "floor": 2,
+      "x": 0.88,
+      "y": 0.5
+    },
+    {
+      "id": "c3_0",
+      "floor": 3,
+      "x": 0.06,
+      "y": 0.5
+    },
+    {
+      "id": "c3_1",
+      "floor": 3,
+      "x": 0.14,
+      "y": 0.5
+    },
+    {
+      "id": "c3_2",
+      "floor": 3,
+      "x": 0.22,
+      "y": 0.5
+    },
+    {
+      "id": "c3_3",
+      "floor": 3,
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "id": "c3_4",
+      "floor": 3,
+      "x": 0.38,
+      "y": 0.5
+    },
+    {
+      "id": "c3_5",
+      "floor": 3,
+      "x": 0.46,
+      "y": 0.5
+    },
+    {
+      "id": "c3_6",
+      "floor": 3,
+      "x": 0.54,
+      "y": 0.5
+    },
+    {
+      "id": "c3_7",
+      "floor": 3,
+      "x": 0.62,
+      "y": 0.5
+    },
+    {
+      "id": "c3_8",
+      "floor": 3,
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "id": "c3_9",
+      "floor": 3,
+      "x": 0.78,
+      "y": 0.5
+    },
+    {
+      "id": "c3_10",
+      "floor": 3,
+      "x": 0.88,
+      "y": 0.5
+    },
+    {
+      "id": "c4_0",
+      "floor": 4,
+      "x": 0.06,
+      "y": 0.5
+    },
+    {
+      "id": "c4_1",
+      "floor": 4,
+      "x": 0.14,
+      "y": 0.5
+    },
+    {
+      "id": "c4_2",
+      "floor": 4,
+      "x": 0.22,
+      "y": 0.5
+    },
+    {
+      "id": "c4_3",
+      "floor": 4,
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "id": "c4_4",
+      "floor": 4,
+      "x": 0.38,
+      "y": 0.5
+    },
+    {
+      "id": "c4_5",
+      "floor": 4,
+      "x": 0.46,
+      "y": 0.5
+    },
+    {
+      "id": "c4_6",
+      "floor": 4,
+      "x": 0.54,
+      "y": 0.5
+    },
+    {
+      "id": "c4_7",
+      "floor": 4,
+      "x": 0.62,
+      "y": 0.5
+    },
+    {
+      "id": "c4_8",
+      "floor": 4,
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "id": "c4_9",
+      "floor": 4,
+      "x": 0.78,
+      "y": 0.5
+    },
+    {
+      "id": "c4_10",
+      "floor": 4,
+      "x": 0.88,
+      "y": 0.5
+    },
+    {
+      "id": "c5_0",
+      "floor": 5,
+      "x": 0.06,
+      "y": 0.5
+    },
+    {
+      "id": "c5_1",
+      "floor": 5,
+      "x": 0.14,
+      "y": 0.5
+    },
+    {
+      "id": "c5_2",
+      "floor": 5,
+      "x": 0.22,
+      "y": 0.5
+    },
+    {
+      "id": "c5_3",
+      "floor": 5,
+      "x": 0.3,
+      "y": 0.5
+    },
+    {
+      "id": "c5_4",
+      "floor": 5,
+      "x": 0.38,
+      "y": 0.5
+    },
+    {
+      "id": "c5_5",
+      "floor": 5,
+      "x": 0.46,
+      "y": 0.5
+    },
+    {
+      "id": "c5_6",
+      "floor": 5,
+      "x": 0.54,
+      "y": 0.5
+    },
+    {
+      "id": "c5_7",
+      "floor": 5,
+      "x": 0.62,
+      "y": 0.5
+    },
+    {
+      "id": "c5_8",
+      "floor": 5,
+      "x": 0.7,
+      "y": 0.5
+    },
+    {
+      "id": "c5_9",
+      "floor": 5,
+      "x": 0.78,
+      "y": 0.5
+    },
+    {
+      "id": "c5_10",
+      "floor": 5,
+      "x": 0.88,
+      "y": 0.5
+    },
+    {
+      "id": "r2_0",
+      "floor": 2,
+      "x": 0.06,
+      "y": 0.72
+    },
+    {
+      "id": "r2_1",
+      "floor": 2,
+      "x": 0.14,
+      "y": 0.3
+    },
+    {
+      "id": "r2_2",
+      "floor": 2,
+      "x": 0.22,
+      "y": 0.3
+    },
+    {
+      "id": "r2_3",
+      "floor": 2,
+      "x": 0.3,
+      "y": 0.3
+    },
+    {
+      "id": "r2_4",
+      "floor": 2,
+      "x": 0.46,
+      "y": 0.72
+    },
+    {
+      "id": "r2_5",
+      "floor": 2,
+      "x": 0.54,
+      "y": 0.72
+    },
+    {
+      "id": "r2_6",
+      "floor": 2,
+      "x": 0.7,
+      "y": 0.3
+    },
+    {
+      "id": "r2_7",
+      "floor": 2,
+      "x": 0.78,
+      "y": 0.72
+    },
+    {
+      "id": "r2_8",
+      "floor": 2,
+      "x": 0.88,
+      "y": 0.72
+    },
+    {
+      "id": "r3_0",
+      "floor": 3,
+      "x": 0.06,
+      "y": 0.3
+    },
+    {
+      "id": "r3_1",
+      "floor": 3,
+      "x": 0.14,
+      "y": 0.3
+    },
+    {
+      "id": "r3_2",
+      "floor": 3,
+      "x": 0.22,
+      "y": 0.72
+    },
+    {
+      "id": "r3_3",
+      "floor": 3,
+      "x": 0.3,
+      "y": 0.72
+    },
+    {
+      "id": "r3_4",
+      "floor": 3,
+      "x": 0.46,
+      "y": 0.3
+    },
+    {
+      "id": "r3_5",
+      "floor": 3,
+      "x": 0.54,
+      "y": 0.72
+    },
+    {
+      "id": "r3_6",
+      "floor": 3,
+      "x": 0.7,
+      "y": 0.3
+    },
+    {
+      "id": "r3_7",
+      "floor": 3,
+      "x": 0.78,
+      "y": 0.72
+    },
+    {
+      "id": "r4_0",
+      "floor": 4,
+      "x": 0.06,
+      "y": 0.3
+    },
+    {
+      "id": "r4_1",
+      "floor": 4,
+      "x": 0.14,
+      "y": 0.3
+    },
+    {
+      "id": "r4_2",
+      "floor": 4,
+      "x": 0.22,
+      "y": 0.72
+    },
+    {
+      "id": "r4_3",
+      "floor": 4,
+      "x": 0.3,
+      "y": 0.72
+    },
+    {
+      "id": "r4_4",
+      "floor": 4,
+      "x": 0.46,
+      "y": 0.3
+    },
+    {
+      "id": "r4_5",
+      "floor": 4,
+      "x": 0.54,
+      "y": 0.72
+    },
+    {
+      "id": "r4_6",
+      "floor": 4,
+      "x": 0.7,
+      "y": 0.3
+    },
+    {
+      "id": "r4_7",
+      "floor": 4,
+      "x": 0.78,
+      "y": 0.72
+    },
+    {
+      "id": "r5_0",
+      "floor": 5,
+      "x": 0.06,
+      "y": 0.3
+    },
+    {
+      "id": "r5_1",
+      "floor": 5,
+      "x": 0.14,
+      "y": 0.72
+    },
+    {
+      "id": "r5_2",
+      "floor": 5,
+      "x": 0.22,
+      "y": 0.3
+    },
+    {
+      "id": "r5_3",
+      "floor": 5,
+      "x": 0.3,
+      "y": 0.72
+    },
+    {
+      "id": "r5_4",
+      "floor": 5,
+      "x": 0.46,
+      "y": 0.3
+    },
+    {
+      "id": "r5_5",
+      "floor": 5,
+      "x": 0.54,
+      "y": 0.72
+    },
+    {
+      "id": "r5_6",
+      "floor": 5,
+      "x": 0.7,
+      "y": 0.72
+    }
+  ],
+  "edges": [
+    {
+      "from": "c2_0",
+      "to": "c2_1",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_1",
+      "to": "c2_2",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_2",
+      "to": "c2_3",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_3",
+      "to": "c2_4",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_4",
+      "to": "c2_5",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_5",
+      "to": "c2_6",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_6",
+      "to": "c2_7",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_7",
+      "to": "c2_8",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_8",
+      "to": "c2_9",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_9",
+      "to": "c2_10",
+      "weight": 9.0,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_0",
+      "to": "c3_1",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_1",
+      "to": "c3_2",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_2",
+      "to": "c3_3",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_3",
+      "to": "c3_4",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_4",
+      "to": "c3_5",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_5",
+      "to": "c3_6",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_6",
+      "to": "c3_7",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_7",
+      "to": "c3_8",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_8",
+      "to": "c3_9",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c3_9",
+      "to": "c3_10",
+      "weight": 9.0,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_0",
+      "to": "c4_1",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_1",
+      "to": "c4_2",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_2",
+      "to": "c4_3",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_3",
+      "to": "c4_4",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_4",
+      "to": "c4_5",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_5",
+      "to": "c4_6",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_6",
+      "to": "c4_7",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_7",
+      "to": "c4_8",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_8",
+      "to": "c4_9",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c4_9",
+      "to": "c4_10",
+      "weight": 9.0,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_0",
+      "to": "c5_1",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_1",
+      "to": "c5_2",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_2",
+      "to": "c5_3",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_3",
+      "to": "c5_4",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_4",
+      "to": "c5_5",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_5",
+      "to": "c5_6",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_6",
+      "to": "c5_7",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_7",
+      "to": "c5_8",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_8",
+      "to": "c5_9",
+      "weight": 7.2,
+      "type": "corridor"
+    },
+    {
+      "from": "c5_9",
+      "to": "c5_10",
+      "weight": 9.0,
+      "type": "corridor"
+    },
+    {
+      "from": "c2_4",
+      "to": "c3_4",
+      "weight": 12.0,
+      "type": "stairs"
+    },
+    {
+      "from": "c2_7",
+      "to": "c3_7",
+      "weight": 9.0,
+      "type": "lift"
+    },
+    {
+      "from": "c3_4",
+      "to": "c4_4",
+      "weight": 12.0,
+      "type": "stairs"
+    },
+    {
+      "from": "c3_7",
+      "to": "c4_7",
+      "weight": 9.0,
+      "type": "lift"
+    },
+    {
+      "from": "c4_4",
+      "to": "c5_4",
+      "weight": 12.0,
+      "type": "stairs"
+    },
+    {
+      "from": "c4_7",
+      "to": "c5_7",
+      "weight": 9.0,
+      "type": "lift"
+    },
+    {
+      "from": "r2_0",
+      "to": "c2_0",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_1",
+      "to": "c2_1",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_2",
+      "to": "c2_2",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_3",
+      "to": "c2_3",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_4",
+      "to": "c2_5",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_5",
+      "to": "c2_6",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_6",
+      "to": "c2_8",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_7",
+      "to": "c2_9",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r2_8",
+      "to": "c2_10",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_0",
+      "to": "c3_0",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_1",
+      "to": "c3_1",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_2",
+      "to": "c3_2",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_3",
+      "to": "c3_3",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_4",
+      "to": "c3_5",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_5",
+      "to": "c3_6",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_6",
+      "to": "c3_8",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r3_7",
+      "to": "c3_9",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_0",
+      "to": "c4_0",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_1",
+      "to": "c4_1",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_2",
+      "to": "c4_2",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_3",
+      "to": "c4_3",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_4",
+      "to": "c4_5",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_5",
+      "to": "c4_6",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_6",
+      "to": "c4_8",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r4_7",
+      "to": "c4_9",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_0",
+      "to": "c5_0",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_1",
+      "to": "c5_1",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_2",
+      "to": "c5_2",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_3",
+      "to": "c5_3",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_4",
+      "to": "c5_5",
+      "weight": 2.8,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_5",
+      "to": "c5_6",
+      "weight": 3.08,
+      "type": "corridor"
+    },
+    {
+      "from": "r5_6",
+      "to": "c5_8",
+      "weight": 3.08,
+      "type": "corridor"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "stairs_2",
+      "name": "Лестница",
+      "floor": 2,
+      "type": "Лестница",
+      "node": "c2_4",
+      "qr": "UNIIT-2-STAIRS"
+    },
+    {
+      "id": "lift_2",
+      "name": "Лифт",
+      "floor": 2,
+      "type": "Лифт",
+      "node": "c2_7",
+      "qr": "UNIIT-2-LIFT"
+    },
+    {
+      "id": "stairs_3",
+      "name": "Лестница",
+      "floor": 3,
+      "type": "Лестница",
+      "node": "c3_4",
+      "qr": "UNIIT-3-STAIRS"
+    },
+    {
+      "id": "lift_3",
+      "name": "Лифт",
+      "floor": 3,
+      "type": "Лифт",
+      "node": "c3_7",
+      "qr": "UNIIT-3-LIFT"
+    },
+    {
+      "id": "stairs_4",
+      "name": "Лестница",
+      "floor": 4,
+      "type": "Лестница",
+      "node": "c4_4",
+      "qr": "UNIIT-4-STAIRS"
+    },
+    {
+      "id": "lift_4",
+      "name": "Лифт",
+      "floor": 4,
+      "type": "Лифт",
+      "node": "c4_7",
+      "qr": "UNIIT-4-LIFT"
+    },
+    {
+      "id": "stairs_5",
+      "name": "Лестница",
+      "floor": 5,
+      "type": "Лестница",
+      "node": "c5_4",
+      "qr": "UNIIT-5-STAIRS"
+    },
+    {
+      "id": "lift_5",
+      "name": "Лифт",
+      "floor": 5,
+      "type": "Лифт",
+      "node": "c5_7",
+      "qr": "UNIIT-5-LIFT"
+    },
+    {
+      "id": "r2_0",
+      "name": "Главный вход",
+      "floor": 2,
+      "type": "Вход",
+      "node": "r2_0",
+      "qr": "UNIIT-2-01"
+    },
+    {
+      "id": "r2_1",
+      "name": "Гардероб",
+      "floor": 2,
+      "type": "Сервис",
+      "node": "r2_1",
+      "qr": "UNIIT-2-02"
+    },
+    {
+      "id": "r2_2",
+      "name": "Деканат IT",
+      "floor": 2,
+      "type": "Деканат",
+      "node": "r2_2",
+      "qr": "UNIIT-2-03"
+    },
+    {
+      "id": "r2_3",
+      "name": "Кафедра IT (каб. 210)",
+      "floor": 2,
+      "type": "Кафедра",
+      "node": "r2_3",
+      "qr": "UNIIT-2-04"
+    },
+    {
+      "id": "r2_4",
+      "name": "Ауд. 201 — Лаб. ПО",
+      "floor": 2,
+      "type": "Аудитория",
+      "node": "r2_4",
+      "qr": "UNIIT-2-05"
+    },
+    {
+      "id": "r2_5",
+      "name": "Ауд. 203",
+      "floor": 2,
+      "type": "Аудитория",
+      "node": "r2_5",
+      "qr": "UNIIT-2-06"
+    },
+    {
+      "id": "r2_6",
+      "name": "Ауд. 205 — Серверная",
+      "floor": 2,
+      "type": "Аудитория",
+      "node": "r2_6",
+      "qr": "UNIIT-2-07"
+    },
+    {
+      "id": "r2_7",
+      "name": "Ауд. 207",
+      "floor": 2,
+      "type": "Аудитория",
+      "node": "r2_7",
+      "qr": "UNIIT-2-08"
+    },
+    {
+      "id": "r2_8",
+      "name": "Туалет 2",
+      "floor": 2,
+      "type": "Сервис",
+      "node": "r2_8",
+      "qr": "UNIIT-2-09"
+    },
+    {
+      "id": "r3_0",
+      "name": "Кафедра АиС (каб. 312)",
+      "floor": 3,
+      "type": "Кафедра",
+      "node": "r3_0",
+      "qr": "UNIIT-3-01"
+    },
+    {
+      "id": "r3_1",
+      "name": "Ауд. 301 — Чертёжная",
+      "floor": 3,
+      "type": "Аудитория",
+      "node": "r3_1",
+      "qr": "UNIIT-3-02"
+    },
+    {
+      "id": "r3_2",
+      "name": "Ауд. 303",
+      "floor": 3,
+      "type": "Аудитория",
+      "node": "r3_2",
+      "qr": "UNIIT-3-03"
+    },
+    {
+      "id": "r3_3",
+      "name": "Ауд. 305 — Мастерская",
+      "floor": 3,
+      "type": "Аудитория",
+      "node": "r3_3",
+      "qr": "UNIIT-3-04"
+    },
+    {
+      "id": "r3_4",
+      "name": "Ауд. 307",
+      "floor": 3,
+      "type": "Аудитория",
+      "node": "r3_4",
+      "qr": "UNIIT-3-05"
+    },
+    {
+      "id": "r3_5",
+      "name": "Ауд. 309",
+      "floor": 3,
+      "type": "Аудитория",
+      "node": "r3_5",
+      "qr": "UNIIT-3-06"
+    },
+    {
+      "id": "r3_6",
+      "name": "Лаборатория материалов 311",
+      "floor": 3,
+      "type": "Аудитория",
+      "node": "r3_6",
+      "qr": "UNIIT-3-07"
+    },
+    {
+      "id": "r3_7",
+      "name": "Туалет 3",
+      "floor": 3,
+      "type": "Сервис",
+      "node": "r3_7",
+      "qr": "UNIIT-3-08"
+    },
+    {
+      "id": "r4_0",
+      "name": "Кафедра физ-мат (каб. 414)",
+      "floor": 4,
+      "type": "Кафедра",
+      "node": "r4_0",
+      "qr": "UNIIT-4-01"
+    },
+    {
+      "id": "r4_1",
+      "name": "Соц.-гум. кафедра (каб. 418)",
+      "floor": 4,
+      "type": "Кафедра",
+      "node": "r4_1",
+      "qr": "UNIIT-4-02"
+    },
+    {
+      "id": "r4_2",
+      "name": "Ауд. 401 — Физлаборатория",
+      "floor": 4,
+      "type": "Аудитория",
+      "node": "r4_2",
+      "qr": "UNIIT-4-03"
+    },
+    {
+      "id": "r4_3",
+      "name": "Ауд. 403",
+      "floor": 4,
+      "type": "Аудитория",
+      "node": "r4_3",
+      "qr": "UNIIT-4-04"
+    },
+    {
+      "id": "r4_4",
+      "name": "Ауд. 405",
+      "floor": 4,
+      "type": "Аудитория",
+      "node": "r4_4",
+      "qr": "UNIIT-4-05"
+    },
+    {
+      "id": "r4_5",
+      "name": "Ауд. 407",
+      "floor": 4,
+      "type": "Аудитория",
+      "node": "r4_5",
+      "qr": "UNIIT-4-06"
+    },
+    {
+      "id": "r4_6",
+      "name": "Ауд. 409 — Матметоды",
+      "floor": 4,
+      "type": "Аудитория",
+      "node": "r4_6",
+      "qr": "UNIIT-4-07"
+    },
+    {
+      "id": "r4_7",
+      "name": "Туалет 4",
+      "floor": 4,
+      "type": "Сервис",
+      "node": "r4_7",
+      "qr": "UNIIT-4-08"
+    },
+    {
+      "id": "r5_0",
+      "name": "Лекционная 501",
+      "floor": 5,
+      "type": "Лекционная",
+      "node": "r5_0",
+      "qr": "UNIIT-5-01"
+    },
+    {
+      "id": "r5_1",
+      "name": "Лекционная 503",
+      "floor": 5,
+      "type": "Лекционная",
+      "node": "r5_1",
+      "qr": "UNIIT-5-02"
+    },
+    {
+      "id": "r5_2",
+      "name": "Ауд. 505",
+      "floor": 5,
+      "type": "Аудитория",
+      "node": "r5_2",
+      "qr": "UNIIT-5-03"
+    },
+    {
+      "id": "r5_3",
+      "name": "Лекционная 507",
+      "floor": 5,
+      "type": "Лекционная",
+      "node": "r5_3",
+      "qr": "UNIIT-5-04"
+    },
+    {
+      "id": "r5_4",
+      "name": "Конференц-зал 512",
+      "floor": 5,
+      "type": "Лекционная",
+      "node": "r5_4",
+      "qr": "UNIIT-5-05"
+    },
+    {
+      "id": "r5_5",
+      "name": "Актовый зал 510",
+      "floor": 5,
+      "type": "Лекционная",
+      "node": "r5_5",
+      "qr": "UNIIT-5-06"
+    },
+    {
+      "id": "r5_6",
+      "name": "Туалет 5",
+      "floor": 5,
+      "type": "Сервис",
+      "node": "r5_6",
+      "qr": "UNIIT-5-07"
+    }
+  ]
+}
