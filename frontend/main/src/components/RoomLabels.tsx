@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type {Room} from "../types/Room.ts";
+import type {Room} from "@shared/types/Room.ts";
 import {useAppSelector} from "../store/store.ts";
 
 

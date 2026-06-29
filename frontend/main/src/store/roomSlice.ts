@@ -1,5 +1,5 @@
 import {createSlice, createAsyncThunk, type PayloadAction} from '@reduxjs/toolkit';
-import type {Room} from "../types/Room.ts";
+import type {Room} from "@shared/types/Room.ts";
 import http from "../http.ts";
 
 

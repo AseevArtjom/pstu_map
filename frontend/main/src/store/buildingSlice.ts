@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { Building } from "../types/Building.ts";
+import type { Building } from "@shared/types/Building.ts";
 import http from "../http.ts";
 
 interface BuildingState {

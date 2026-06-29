@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type {Node} from "../types/Node.ts";
-import type {Edge} from "../types/Edge.ts";
-import type {BuildingGraphResponse} from "../types/response/BuildingGraphResponse.ts";
+import type {Node} from "@shared/types/Node.ts";
+import type {Edge} from "@shared/types/Edge.ts";
+import type {BuildingGraphResponse} from "@shared/types/response/BuildingGraphResponse.ts";
 import http from "../http.ts";
-import type {PathResponse} from "../types/response/PathResponse.ts";
+import type {PathResponse} from "@shared/types/response/PathResponse.ts";
 
 interface MapState {
     nodes: Node[];

@@ -173,7 +173,6 @@ export default function InteractiveMap({
                                         </g>
                                     );
                                 })}
-
                                 {!isGlobalMap && children}
                             </g>
                         </svg>
