@@ -8,4 +8,5 @@ export interface Room {
     description: string;
     node: Node;
     qrCode?: string;
+    roomPolygon?: string;
 }

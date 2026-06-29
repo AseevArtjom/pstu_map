@@ -1,9 +1,6 @@
 package com.project.pstu_map.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -24,4 +21,8 @@ public class Building
 
     @Column(name = "map_polygon")
     private String mapPolygon;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_id")
+    private UploadedIcon icon;
 }

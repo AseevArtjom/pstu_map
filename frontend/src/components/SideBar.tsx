@@ -1,7 +1,18 @@
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemText, Typography, Divider, Button, CircularProgress } from "@mui/material";
-import BusinessIcon from "@mui/icons-material/Business";
+import {
+    Box,
+    Drawer,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    Typography,
+    Divider,
+    Button,
+    CircularProgress
+} from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useAppSelector } from "../store/store"; // Твой кастомный TS хук
+import { useAppSelector } from "../store/store";
+import BuildingIcon from "./BuildingIcon.tsx";
 
 const DRAWER_WIDTH = 400;
 
@@ -24,13 +35,6 @@ export default function SideBar({
                                 }: SideBarProps) {
 
     const { buildings, loading, selectedFloor } = useAppSelector((state) => state.building);
-
-    const staticFutureBuildings = [
-        { id: "1", name: "1-й Главный корпус" },
-        { id: "2", name: "2-й Гуманитарный корпус" },
-    ];
-
-
 
     return (
         <Drawer
@@ -84,7 +88,8 @@ export default function SideBar({
                                     "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.04)" }
                                 }}
                             >
-                                <BusinessIcon sx={{ mr: 2, color: "#2F80ED" }} />
+                                <BuildingIcon iconPath={b.icon_path} hovered={hoveredBuilding === b.id} />
+
                                 <ListItemText
                                     primary={b.name}
                                     secondary="Планы этажей готовы"
@@ -96,27 +101,6 @@ export default function SideBar({
                             </ListItemButton>
                         </ListItem>
                     ))}
-
-                    {staticFutureBuildings
-                        .filter(fb => !buildings.some(b => b.id === fb.id))
-                        .map((b) => (
-                            <ListItem key={b.id} disablePadding>
-                                <ListItemButton
-                                    disabled
-                                    sx={{ py: 1.5, "&.Mui-disabled": { opacity: 0.35 } }}
-                                >
-                                    <BusinessIcon sx={{ mr: 2, color: "#4E5156" }} />
-                                    <ListItemText
-                                        primary={b.name}
-                                        secondary="В разработке"
-                                        slotProps={{
-                                            primary: { style: { color: "#90949C", fontWeight: 500 } },
-                                            secondary: { style: { color: "#4E5156", marginTop: "2px" } }
-                                        }}
-                                    />
-                                </ListItemButton>
-                            </ListItem>
-                        ))}
                 </List>
             ) : (
                 <Box sx={{ p: 2 }}>
@@ -144,21 +128,21 @@ export default function SideBar({
 
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                         {[1, 2, 3, 4].map((floor) => {
-                            const isSelected = selectedFloor === floor;
+                            const isFloorSelected = Number(selectedFloor) === floor;
                             return (
                                 <Button
                                     key={floor}
-                                    variant={isSelected ? "contained" : "text"}
+                                    variant={isFloorSelected ? "contained" : "text"}
                                     onClick={() => onChangeFloor(floor)}
                                     sx={{
                                         minWidth: "76px",
                                         padding: "8px 0",
-                                        backgroundColor: isSelected ? "#2F80ED" : "rgba(255, 255, 255, 0.05)",
-                                        color: isSelected ? "#FFFFFF" : "#E4E6EB",
                                         textTransform: "none",
-                                        fontWeight: isSelected ? 600 : 400,
+                                        fontWeight: isFloorSelected ? 600 : 400,
+                                        color: isFloorSelected ? "#FFFFFF !important" : "#E4E6EB",
+                                        backgroundColor: isFloorSelected ? "#2F80ED !important" : "rgba(255, 255, 255, 0.05)",
                                         "&:hover": {
-                                            backgroundColor: isSelected ? "#1B6FD1" : "rgba(255, 255, 255, 0.1)"
+                                            backgroundColor: isFloorSelected ? "#1B6FD1 !important" : "rgba(255, 255, 255, 0.1)"
                                         }
                                     }}
                                 >

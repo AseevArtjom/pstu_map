@@ -1,4 +1,4 @@
-package com.project.pstu_map.dto;
+package com.project.pstu_map.dto.node;
 
 import lombok.Data;
 

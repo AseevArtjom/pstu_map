@@ -4,4 +4,5 @@ export interface Building {
     lengthM: number;
     depthM: number;
     mapPolygon?: string;
+    icon_path: string | null;
 }

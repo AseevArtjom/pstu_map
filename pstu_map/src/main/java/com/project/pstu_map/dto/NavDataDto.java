@@ -1,5 +1,8 @@
 package com.project.pstu_map.dto;
 
+import com.project.pstu_map.dto.edge.EdgeDto;
+import com.project.pstu_map.dto.node.NodeDto;
+import com.project.pstu_map.dto.room.RoomDto;
 import lombok.Data;
 
 import java.util.List;

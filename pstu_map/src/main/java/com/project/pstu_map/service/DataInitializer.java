@@ -2,6 +2,9 @@ package com.project.pstu_map.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.pstu_map.dto.*;
+import com.project.pstu_map.dto.edge.EdgeDto;
+import com.project.pstu_map.dto.node.NodeDto;
+import com.project.pstu_map.dto.room.RoomDto;
 import com.project.pstu_map.models.Building;
 import com.project.pstu_map.models.Edge;
 import com.project.pstu_map.models.Node;
@@ -12,15 +15,13 @@ import com.project.pstu_map.repository.NodeRepository;
 import com.project.pstu_map.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 
-@Component
+// @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
     private final BuildingRepository buildingRepository;
@@ -71,8 +72,12 @@ public class DataInitializer implements CommandLineRunner {
                 NavDataDto dataDto = objectMapper.readValue(inputStream, NavDataDto.class);
 
                 MetaDto buildingMeta = dataDto.getMeta();
-                Building building = new Building();
-                building.setId(buildingId);
+                Building building = buildingRepository.findById(buildingId)
+                        .orElseGet(() -> {
+                            Building b = new Building();
+                            b.setId(buildingId);
+                            return b;
+                        });
                 building.setName(buildingMeta.getBuilding());
                 building.setLengthM(buildingMeta.getBuilding_length_m());
                 building.setDepthM(buildingMeta.getBuilding_depth_m());
@@ -97,6 +102,7 @@ public class DataInitializer implements CommandLineRunner {
                     room.setFloor(roomDto.getFloor());
                     room.setType(roomDto.getType());
                     room.setQrCode(roomDto.getQr());
+                    room.setBuilding(building);
 
                     Node node = nodeRepository.findById(roomDto.getNode())
                             .orElseThrow(() -> new RuntimeException("Узел не найден: " + roomDto.getNode() + " в файле" + filename));
