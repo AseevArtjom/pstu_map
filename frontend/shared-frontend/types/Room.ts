@@ -7,6 +7,7 @@ export interface Room {
     type: string;
     description: string;
     node: Node;
+    buildingId?: number;
     qrCode?: string;
     roomPolygon?: string;
 }

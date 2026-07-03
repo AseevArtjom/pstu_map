@@ -10,9 +10,9 @@ interface InteractiveMapProps {
     children?: ReactNode;
     onDimensionsLoad?: (width: number, height: number) => void;
     isGlobalMap?: boolean;
-    hoveredBuilding?: string | null;
-    setHoveredBuilding?: (id: string | null) => void;
-    onSelectBuilding?: (id: string) => void;
+    hoveredBuilding?: number | null;
+    setHoveredBuilding?: (id: number | null) => void;
+    onSelectBuilding?: (id: number) => void;
 }
 
 export default function InteractiveMap({
@@ -43,7 +43,7 @@ export default function InteractiveMap({
             });
             onDimensionsLoad?.(img.naturalWidth, img.naturalHeight);
         };
-    }, [bgImage, onDimensionsLoad]);
+    }, [bgImage]);
 
     useEffect(() => {
         if (containerRef.current && mapDimensions) {

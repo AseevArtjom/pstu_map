@@ -12,6 +12,6 @@ public class RoomResponseDto {
     private String description;
     private String qrCode;
     private String roomPolygon;
-    private String buildingId;
+    private Integer buildingId;
     private NodeDto node;
 }

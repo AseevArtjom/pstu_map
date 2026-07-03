@@ -14,25 +14,19 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class RoomService
-{
+public class RoomService {
     private final RoomRepository roomRepository;
 
-    public Optional<Room> getRoomById(String roomId)
-    {
+    public Optional<Room> getRoomById(String roomId) {
         return roomRepository.findById(roomId);
     }
 
-    public List<Room> getAllRooms()
-    {
+    public List<Room> getAllRooms() {
         return roomRepository.findAll();
     }
 
-    public List<Room> getRoomsByBuildingId(String buildingId)
-    {
-        return roomRepository.findAll().stream()
-                .filter(room -> room.getNode().getBuilding().getId().equalsIgnoreCase(buildingId))
-                .toList();
+    public List<Room> getRoomsByBuildingId(Integer buildingId) {
+        return roomRepository.findByBuildingId(buildingId);
     }
 
     public RoomResponseDto convertToResponseDto(Room room) {

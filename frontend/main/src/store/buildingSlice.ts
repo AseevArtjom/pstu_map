@@ -1,12 +1,12 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { Building } from "@shared/types/Building.ts";
+import type { Building } from "@shared/types/Building";
 import http from "../http.ts";
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface BuildingState {
     buildings: Building[];
-    selectedBuildingId: string | null;
+    selectedBuildingId: number | null;
     selectedFloor: number | null;
-    hoveredBuildingId: string | null;
+    hoveredBuildingId: number | null;
     loading: boolean;
     error: string | null;
 }
@@ -23,7 +23,7 @@ const initialState: BuildingState = {
 export const fetchAllBuildings = createAsyncThunk<Building[]>(
     'building/fetchAll',
     async () => {
-        const response = await http.get<Building[]>('/buildings');
+        const response = await http.get<Building[]>('/api/buildings');
         return response.data;
     }
 );
@@ -32,18 +32,13 @@ const buildingSlice = createSlice({
     name: 'building',
     initialState,
     reducers: {
-        setSelectedBuildingId: (state, action: PayloadAction<string | null>) => {
+        setSelectedBuildingId: (state, action: PayloadAction<number | null>) => {
             state.selectedBuildingId = action.payload;
-            if (action.payload === null) {
-                state.selectedFloor = null;
-            } else if (state.selectedFloor === null) {
-                state.selectedFloor = 1;
-            }
         },
         setSelectedFloor: (state, action: PayloadAction<number | null>) => {
             state.selectedFloor = action.payload;
         },
-        setHoveredBuildingId: (state, action: PayloadAction<string | null>) => {
+        setHoveredBuildingId: (state, action: PayloadAction<number | null>) => {
             state.hoveredBuildingId = action.payload;
         },
     },

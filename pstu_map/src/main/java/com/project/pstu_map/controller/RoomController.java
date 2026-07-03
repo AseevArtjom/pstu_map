@@ -12,19 +12,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class RoomController {
 
     private final RoomService roomService;
 
     @GetMapping
-    public List<RoomResponseDto> getRooms(@RequestParam(required = false) String buildingId) {
-        List<Room> rooms = (buildingId != null && !buildingId.isBlank())
-                ? roomService.getRoomsByBuildingId(buildingId)
-                : roomService.getAllRooms();
-
-        return rooms.stream()
+    public List<RoomResponseDto> getRoomsByBuildingId(@RequestParam("buildingId") Integer buildingId) {
+        return roomService.getRoomsByBuildingId(buildingId).stream()
                 .map(roomService::convertToResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

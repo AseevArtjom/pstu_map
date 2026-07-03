@@ -3,13 +3,16 @@ package com.project.pstu_map.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 @Entity
 @Table(name = "buildings")
 @Data
 public class Building
 {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     private String name;
 
@@ -25,4 +28,10 @@ public class Building
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_id")
     private UploadedIcon icon;
+
+    @Column(name = "hex_color")
+    private String hexColor;
+
+    @OneToMany(mappedBy = "building",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<FloorPlan> floors;
 }

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/map")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class MapController
 {
     private final MapService mapService;

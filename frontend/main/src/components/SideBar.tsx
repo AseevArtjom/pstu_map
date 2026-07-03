@@ -17,12 +17,13 @@ import BuildingIcon from "./BuildingIcon.tsx";
 const DRAWER_WIDTH = 400;
 
 interface SideBarProps {
-    selectedBuilding: string | null;
-    hoveredBuilding: string | null;
-    setHoveredBuilding: (id: string | null) => void;
-    handleSelectBuilding: (buildingId: string) => void;
+    selectedBuilding: number | null;
+    hoveredBuilding: number | null;
+    setHoveredBuilding: (id: number | null) => void;
+    handleSelectBuilding: (buildingId: number) => void;
     onChangeFloor: (floor: number) => void;
     onBackToMap: () => void;
+    availableFloors: number[];
 }
 
 export default function SideBar({
@@ -32,6 +33,7 @@ export default function SideBar({
                                     handleSelectBuilding,
                                     onChangeFloor,
                                     onBackToMap,
+                                    availableFloors,
                                 }: SideBarProps) {
 
     const { buildings, loading, selectedFloor } = useAppSelector((state) => state.building);
@@ -57,7 +59,7 @@ export default function SideBar({
                 </Typography>
                 <Typography variant="caption" sx={{ color: "#90949C", display: "block", mt: 0.5 }}>
                     {selectedBuilding
-                        ? `Корпус №${selectedBuilding} — Этаж ${selectedFloor}`
+                        ? `Корпус №${selectedBuilding} — Этаж ${selectedFloor || " "}`
                         : "Выберите корпус на карте или в списке"}
                 </Typography>
             </Box>
@@ -127,7 +129,7 @@ export default function SideBar({
                     </Typography>
 
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                        {[1, 2, 3, 4].map((floor) => {
+                        {[...availableFloors].sort((a, b) => a - b).map((floor) => {
                             const isFloorSelected = Number(selectedFloor) === floor;
                             return (
                                 <Button
@@ -150,6 +152,12 @@ export default function SideBar({
                                 </Button>
                             );
                         })}
+
+                        {availableFloors.length === 0 && (
+                            <Typography sx={{ color: "#90949C", fontSize: "13px", fontStyle: "italic" }}>
+                                Планы этажей отсутствуют
+                            </Typography>
+                        )}
                     </Box>
                 </Box>
             )}
