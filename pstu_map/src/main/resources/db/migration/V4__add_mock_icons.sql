@@ -14,6 +14,6 @@ INSERT INTO uploaded_icons (file_path) VALUES
 ('/icons/LocalHospital.svg'),
 ('/icons/LocalParking.svg');
 
-UPDATE buildings SET icon_id = 1 WHERE id = 11;
-UPDATE buildings SET icon_id = 2 WHERE id = 12;
-UPDATE buildings SET icon_id = 3 WHERE id = 13;
+UPDATE buildings SET icon_id = 3 WHERE id = 11;
+UPDATE buildings SET icon_id = 4 WHERE id = 12;
+UPDATE buildings SET icon_id = 5 WHERE id = 13;

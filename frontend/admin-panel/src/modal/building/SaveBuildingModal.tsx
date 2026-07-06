@@ -4,22 +4,16 @@ import {
     Box, Typography, Select, MenuItem, type SelectChangeEvent
 } from '@mui/material';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import { useAppDispatch, useAppSelector } from "../store/store";
-import {deleteIcon, fetchIcons, uploadIcon} from "../store/iconSlice";
-import { BASE_URL } from "../http";
-import IconItemContent from "../components/IconItemContent.tsx";
+import { useAppDispatch, useAppSelector } from "../../store/store.ts";
+import {deleteIcon, fetchIcons, uploadIcon} from "../../store/iconSlice.ts";
+import { BASE_URL } from "../../http.ts";
+import IconItemContent from "../../components/IconItemContent.tsx";
 
 interface SaveBuildingModalProps {
     open: boolean;
     onClose: () => void;
-    points: { x: number, y: number }[];
-    onSave: (name: string, hexColor: string, icon: string | null, lengthM: number, depthM: number) => void;
-    initialData?: {
-        id: number;
-        name: string;
-        hexColor: string;
-        icon: string | null;
-    } | null;
+    onNext: (name: string, hexColor: string, icon: string | null) => void;
+    initialData?: any;
 }
 
 const inputStyle = {
@@ -35,22 +29,7 @@ const inputStyle = {
     }
 };
 
-const calculateDimensions = (points: {x: number, y: number}[]) => {
-    const xs = points.map(p => p.x);
-    const ys = points.map(p => p.y);
-
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-
-    return {
-        lengthM: maxX - minX,
-        depthM: maxY - minY
-    };
-};
-
-export default function SaveBuildingModal({ open, onClose, points, onSave,initialData }: SaveBuildingModalProps) {
+export default function SaveBuildingModal({ open, onClose, onNext,initialData }: SaveBuildingModalProps) {
     const dispatch = useAppDispatch();
     const { icons = [] } = useAppSelector((state) => state.icon || { icons: [] });
 
@@ -60,42 +39,43 @@ export default function SaveBuildingModal({ open, onClose, points, onSave,initia
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useEffect(() => {
-        if (open && initialData) {
-            setName(initialData.name);
-            setHexColor(initialData.hexColor);
-            setSelectedIcon(initialData.icon);
-        } else if (open) {
-            setName('');
-            setHexColor('#2F80ED');
-            setSelectedIcon(null);
-        }
-    }, [open, initialData]);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         if (open) {
             dispatch(fetchIcons()).unwrap().then((data) => {
-                if (data && data.length > 0 && !selectedIcon) {
+                if (initialData?.icon) {
+                    setSelectedIcon(initialData.icon);
+                } else if (data && data.length > 0 && !selectedIcon) {
                     setSelectedIcon(data[0].filePath);
                 }
             });
+
+            if (initialData) {
+                setName(initialData.name || '');
+                setHexColor(initialData.hexColor || '#2F80ED');
+            } else {
+                setName('');
+                setHexColor('#2F80ED');
+            }
         }
-    }, [open, dispatch]);
+    }, [open, initialData, dispatch]);
 
     const handleSave = () => {
-        if (!name.trim() || hexColor.length !== 7) return;
+        const isNameInvalid = !name.trim();
 
-        const { lengthM, depthM } = calculateDimensions(points);
+        if (isNameInvalid) {
+            setError(true);
+            return;
+        }
+        setError(false);
+        const finalIcon = selectedIcon || (icons.length > 0 ? icons[0].filePath : null);
+        if (!finalIcon) {
+            alert("Выберите иконку!");
+            return;
+        }
 
-        onSave(
-            name.trim(),
-            hexColor.toUpperCase(),
-            selectedIcon,
-            lengthM,
-            depthM
-        );
-        onClose();
+        onNext(name.trim(), hexColor.toUpperCase(), finalIcon);
     };
 
     const handleColorChangeWithDelay = (newColor: string) => {
@@ -214,10 +194,15 @@ export default function SaveBuildingModal({ open, onClose, points, onSave,initia
                         label="Название корпуса"
                         fullWidth
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                            setName(e.target.value);
+                            if (error) setError(false);
+                        }}
+                        error={error}
+                        helperText={error ? "Введите название корпуса" : ""}
                         slotProps={{
                             input: { sx: { ...inputStyle, color: '#fff', bgcolor: 'rgba(255,255,255,0.03)' } },
-                            inputLabel: { sx: { color: 'rgba(255,255,255,0.5)' } }
+                            inputLabel: { sx: { color: error ? '#f44336' : 'rgba(255,255,255,0.5)' } }
                         }}
                     />
                 </Box>
@@ -282,8 +267,12 @@ export default function SaveBuildingModal({ open, onClose, points, onSave,initia
 
             <DialogActions sx={{ p: 2, gap: 1 }}>
                 <Button onClick={onClose} sx={{ color: 'rgba(255,255,255,0.5)' }}>Отмена</Button>
-                <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#2F80ED', color: '#fff' }}>
-                    Сохранить
+                <Button
+                    onClick={handleSave}
+                    variant="contained"
+                    sx={{ bgcolor: '#2F80ED', color: '#fff' }}
+                >
+                    Далее
                 </Button>
             </DialogActions>
         </Dialog>

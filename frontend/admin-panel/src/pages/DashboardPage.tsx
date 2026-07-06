@@ -5,20 +5,20 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import SideBar from "../components/SideBar";
 import InteractiveMap from "../components/InteractiveMap";
 import RoomLabels from "../components/RoomLabels.tsx";
-import ContextMenu from "../components/ContextMenu";
+import BuildingContextMenu from "../components/BuildingContextMenu.tsx";
 import BuildingDrawingLayer from "../components/BuildingDrawingLayer";
 
 import { useAppDispatch, useAppSelector } from "../store/store.ts";
-import {deleteBuilding, fetchAllBuildings, setSelectedFloor, updateBuilding} from "../store/buildingSlice.ts";
+import {deleteBuilding, fetchAllBuildings, setSelectedFloor} from "../store/buildingSlice.ts";
 import { fetchRoomsByBuilding } from "../store/roomSlice.ts";
 import { fetchFloorsByBuilding } from "../store/floorPlanSlice.ts";
 import { BASE_URL } from "../http.ts";
 import { useAuthService } from "../hooks/useAuthService.ts";
-import {formatPoints, parsePoints, useBuildingConstructor} from "../hooks/useBuildingConstructor.ts";
+import {parsePoints, useBuildingConstructor} from "../hooks/useBuildingConstructor.ts";
 import { usePolygonColors } from "../hooks/usePolygonColors.ts";
 
 import campusBaseImg from "@shared/assets/campus_base.png";
-import SaveBuildingModal from "../modal/SaveBuildingModal.tsx";
+import AddBuildingStep from "../modal/building/AddBuildingStep.tsx";
 
 interface MapPolygonProps {
     building: any;
@@ -116,9 +116,9 @@ export default function DashboardPage() {
     }
 
     const currentFloorPlan = floors.find(f => f.floorNumber === selectedFloor);
-    const bgMapImage = selectedBuilding === null
-        ? campusBaseImg
-        : (currentFloorPlan ? `${BASE_URL}${currentFloorPlan.imagePath}` : `/src/assets/floors/building_${selectedBuilding}_floor_${selectedFloor}.png`);
+    const bgMapImage = currentFloorPlan
+        ? `${BASE_URL}${currentFloorPlan.imagePath}`
+        : "";
 
     return (
         <Box
@@ -156,7 +156,7 @@ export default function DashboardPage() {
                 {selectedBuilding !== null && (
                     <Box sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)", borderBottom: "1px solid #ccc", zIndex: 10 }}>
                         <Typography variant="h5" sx={{ color: "#14161A" }}>
-                            {currentBuilding ? currentBuilding.name : `Корпус ${selectedBuilding}`}, Этаж {selectedFloor || " "}
+                            {buildings.find(b => b.id === selectedBuilding)?.name || "Загрузка..."}, Этаж {selectedFloor || " "}
                         </Typography>
                     </Box>
                 )}
@@ -170,6 +170,7 @@ export default function DashboardPage() {
                         onSelectBuilding={(id) => setSelectedBuilding(id)}
                         onDimensionsLoad={handleDimensionsLoad}
                         isDrawingMode={constructor.isDrawingMode}
+                        editingId={constructor.editingId}
                     >
                         {!constructor.isDrawingMode && buildings.map((b) => (
                             <MapPolygon
@@ -191,6 +192,7 @@ export default function DashboardPage() {
                                 draggedPointIndex={constructor.draggedPointIndex}
                                 onPointMouseDown={constructor.handlePointMouseDown}
                                 onPointContextMenu={constructor.handlePointContextMenu}
+                                fillColor={currentBuilding?.hex_color}
                             />
                         )}
                     </InteractiveMap>
@@ -220,7 +222,7 @@ export default function DashboardPage() {
                 </Button>
             </Box>
 
-            <ContextMenu
+            <BuildingContextMenu
                 mouseX={constructor.contextMenu.mouseX}
                 mouseY={constructor.contextMenu.mouseY}
                 targetType={constructor.contextMenu.targetType}
@@ -241,32 +243,24 @@ export default function DashboardPage() {
                 }}
             />
 
-            <SaveBuildingModal
+            <AddBuildingStep
+                key={currentBuilding?.id || 'new'}
                 open={constructor.isSaveModalOpen}
-                onClose={() => constructor.setIsSaveModalOpen(false)}
-                points={constructor.polygonPoints}
-                initialData={constructor.isEditing && currentBuilding ? {
-                    id: currentBuilding.id,
-                    name: currentBuilding.name,
-                    hexColor: currentBuilding.hex_color,
-                    icon: currentBuilding.icon_path || null
-                } : null}
-                onSave={(name, hexColor, icon, lengthM, depthM) => {
-                    if (constructor.isEditing && constructor.editingId) {
-                        dispatch(updateBuilding({
-                            id: constructor.editingId,
-                            name,
-                            hex_color: hexColor,
-                            icon,
-                            lengthM,
-                            depthM,
-                            mapPolygon: formatPoints(constructor.polygonPoints)
-                        }));
-                        constructor.resetDrawing();
-                    } else {
-                        constructor.handleSaveBuilding(name, hexColor, icon, lengthM, depthM);
-                    }
+                onClose={() => {
+                    constructor.setIsSaveModalOpen(false)
+                    constructor.resetDrawing();
                 }}
+                points={constructor.polygonPoints}
+                initialData={
+                    constructor.isEditing && currentBuilding
+                        ? {
+                            id: currentBuilding.id,
+                            name: currentBuilding.name,
+                            hexColor: currentBuilding.hex_color,
+                            icon: currentBuilding.icon_path || null
+                        }
+                        : null
+                }
             />
         </Box>
     );

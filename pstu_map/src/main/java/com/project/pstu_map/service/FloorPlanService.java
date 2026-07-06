@@ -8,16 +8,23 @@ import com.project.pstu_map.repository.FloorPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
-public class FloorPlanService
-{
+public class FloorPlanService {
     private final FloorPlanRepository floorPlanRepository;
-    private final BuildingRepository buildingRepository;
     private final FileService fileService;
+    private final BuildingRepository buildingRepository;
+
+    @Transactional(readOnly = true)
+    public java.util.List<FloorPlanDto> findAllFloorPlans() {
+        return floorPlanRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
 
     @Transactional
     public FloorPlanDto saveOrUpdateFloorPlan(Integer buildingId, Integer floorNumber, String imagePath) {
@@ -35,8 +42,23 @@ public class FloorPlanService
         floorPlan.setFloorNumber(floorNumber);
         floorPlan.setImagePath(imagePath);
 
-        FloorPlan savedPlan = floorPlanRepository.save(floorPlan);
-        return convertToDTO(savedPlan);
+        return convertToDTO(floorPlanRepository.save(floorPlan));
+    }
+
+    @Transactional
+    public FloorPlanDto updateFloorPlan(Integer buildingId, Integer floorNumber, MultipartFile newFile) throws IOException {
+        FloorPlan plan = floorPlanRepository.findByBuildingIdAndFloorNumber(buildingId, floorNumber)
+                .orElseThrow(() -> new IllegalArgumentException("Этаж не найден"));
+
+        if (newFile != null && !newFile.isEmpty()) {
+            if (plan.getImagePath() != null) fileService.deleteFile(plan.getImagePath());
+
+            String newPath = fileService.saveFile(newFile, FileService.FileType.FLOOR_PLAN, "b" + buildingId + "_f" + floorNumber);
+            plan.setImagePath(newPath);
+        }
+
+        plan.setFloorNumber(floorNumber);
+        return convertToDTO(floorPlanRepository.save(plan));
     }
 
     @Transactional(readOnly = true)

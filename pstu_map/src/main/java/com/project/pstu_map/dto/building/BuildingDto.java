@@ -15,6 +15,7 @@ public class BuildingDto {
     private String mapPolygon;
     @JsonProperty("hex_color")
     private String hexColor;
-    private String icon_path;
+    @JsonProperty("icon_path")
+    private String iconPath;
     private List<FloorPlanDto> floors;
 }

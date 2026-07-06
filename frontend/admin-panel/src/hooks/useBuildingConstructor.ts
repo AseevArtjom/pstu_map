@@ -127,26 +127,9 @@ export function useBuildingConstructor(currentMapSize: { width: number; height: 
         const currentMousePos = getSVGCoordinates(event.clientX, event.clientY);
 
         if (draggedPointIndex !== null) {
-            activeCoordsRef.current = currentMousePos;
-
-            if (mapContainerRef.current) {
-                const circle = mapContainerRef.current.querySelector(`.drawing-circle[data-index="${draggedPointIndex}"]`);
-                if (circle) {
-                    circle.setAttribute('cx', String(currentMousePos.x));
-                    circle.setAttribute('cy', String(currentMousePos.y));
-                }
-
-                const updatedPoints = polygonPoints.map((point, idx) =>
-                    idx === draggedPointIndex ? currentMousePos : point
-                );
-                const pointsString = updatedPoints.map(p => `${p.x},${p.y}`).join(' ');
-
-                const stablePolygon = mapContainerRef.current.querySelector('.stable-polygon');
-                if (stablePolygon) stablePolygon.setAttribute('points', pointsString);
-
-                const stablePolyline = mapContainerRef.current.querySelector('.stable-polyline');
-                if (stablePolyline) stablePolyline.setAttribute('points', pointsString);
-            }
+            setPolygonPoints((prev) =>
+                prev.map((p, idx) => (idx === draggedPointIndex ? currentMousePos : p))
+            );
         } else if (polygonPoints.length > 0) {
             setTempPoint(currentMousePos);
         }
@@ -185,7 +168,7 @@ export function useBuildingConstructor(currentMapSize: { width: number; height: 
     const handleSaveBuilding = useCallback((
         name: string,
         hexColor: string,
-        icon: string | null,
+        iconPath: string | null,
         lengthM: number,
         depthM: number
     ) => {
@@ -195,7 +178,7 @@ export function useBuildingConstructor(currentMapSize: { width: number; height: 
             name,
             mapPolygon: pointsStr,
             hex_color: hexColor,
-            icon,
+            icon_path: iconPath,
             lengthM,
             depthM
         };
@@ -206,14 +189,14 @@ export function useBuildingConstructor(currentMapSize: { width: number; height: 
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (!isDrawingMode || isSaveModalOpen) return; // Запрещаем Enter, если модалка уже открыта
+            if (!isDrawingMode || isSaveModalOpen) return;
             if (e.key === 'Escape') resetDrawing();
             if (e.key === 'Enter') {
                 if (polygonPoints.length < 3) {
                     console.warn("Нужно минимум 3 точки для фиксации здания!");
                     return;
                 }
-                setIsSaveModalOpen(true); // 👈 Вместо алерта открываем наше модальное окно
+                setIsSaveModalOpen(true);
             }
         };
         window.addEventListener('keydown', handleKeyDown);

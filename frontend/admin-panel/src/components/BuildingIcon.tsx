@@ -1,37 +1,43 @@
 import ApartmentIcon from '@mui/icons-material/Apartment';
-import {BASE_URL} from "../http.ts";
+import { BASE_URL } from "../http.ts";
 
 interface BuildingIconProps {
     iconPath: string | null;
-    hovered: boolean;
+    iconColor: string;
 }
 
-export default function BuildingIcon({ iconPath, hovered }: BuildingIconProps) {
+export default function BuildingIcon({ iconPath, iconColor }: BuildingIconProps) {
     if (!iconPath) {
         return (
             <ApartmentIcon
                 sx={{
-                    mr: 2,
-                    color: "#2F80ED",
-                    transition: 'color 0.2s'
+                    color: iconColor,
                 }}
             />
         );
     }
 
     return (
-        <img
-            src={`${BASE_URL}${iconPath}`}
-            alt=""
-            style={{
-                width: 24,
-                height: 24,
-                marginRight: '16px',
-                objectFit: 'contain',
-                transition: 'filter 0.2s, opacity 0.2s',
-                filter: 'invert(44%) sepia(91%) saturate(1243%) hue-rotate(197deg) brightness(96%) contrast(93%)',
-                opacity: hovered ? 0.8 : 1
-            }}
-        />
+        <div style={{
+            width: 24,
+            height: 24,
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+        }}>
+            <img
+                src={`${BASE_URL}${iconPath}`}
+                alt=""
+                style={{
+                    width: '24px',
+                    height: '24px',
+                    filter: `drop-shadow(24px 0 0 ${iconColor})`,
+                    transform: `translateX(-24px)`,
+                }}
+            />
+        </div>
     );
 }

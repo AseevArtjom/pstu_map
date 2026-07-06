@@ -1,4 +1,5 @@
 import type { SVGPoint } from "../hooks/useBuildingConstructor";
+import { useBuildingColor } from "../hooks/useBuildingColor.ts";
 
 interface DrawingLayerProps {
     mapSize: { width: number; height: number };
@@ -8,6 +9,7 @@ interface DrawingLayerProps {
     draggedPointIndex: number | null;
     onPointMouseDown: (index: number, event: React.MouseEvent) => void;
     onPointContextMenu: (index: number, event: React.MouseEvent) => void;
+    fillColor?: string;
 }
 
 export default function BuildingDrawingLayer({
@@ -16,7 +18,8 @@ export default function BuildingDrawingLayer({
                                                  tempPoint,
                                                  draggedPointIndex,
                                                  onPointMouseDown,
-                                                 onPointContextMenu
+                                                 onPointContextMenu,
+                                                 fillColor
                                              }: DrawingLayerProps) {
     if (polygonPoints.length === 0) return null;
 
@@ -26,13 +29,15 @@ export default function BuildingDrawingLayer({
 
     const isShowingLines = draggedPointIndex === null && tempPoint !== null;
 
+    const colors = useBuildingColor(fillColor);
+
     return (
         <g style={{ zIndex: 9999 }}>
             {polygonPoints.length >= 2 && isShowingLines && (
                 <polygon
                     points={tempPointsString}
-                    fill="rgba(47, 128, 237, 0.15)"
-                    stroke="none"
+                    fill={colors.fill}
+                    stroke={colors.stroke}
                 />
             )}
 
@@ -40,8 +45,8 @@ export default function BuildingDrawingLayer({
                 <polygon
                     className="stable-polygon"
                     points={pointsString}
-                    fill="rgba(47, 128, 237, 0.2)"
-                    stroke="rgba(47, 128, 237, 0.7)"
+                    fill={colors.fill}
+                    stroke={colors.stroke}
                     strokeWidth="2"
                 />
             )}
@@ -50,8 +55,8 @@ export default function BuildingDrawingLayer({
                 <polyline
                     className="stable-polyline"
                     points={pointsString}
-                    fill="none"
-                    stroke="rgba(47, 128, 237, 0.7)"
+                    fill={colors.fill}
+                    stroke={colors.stroke}
                     strokeWidth="2"
                 />
             )}
@@ -63,7 +68,7 @@ export default function BuildingDrawingLayer({
                         y1={lastPoint.y}
                         x2={tempPoint.x}
                         y2={tempPoint.y}
-                        stroke="rgba(47, 128, 237, 0.7)"
+                        stroke={colors.stroke}
                         strokeWidth="2"
                         strokeDasharray="4 4"
                     />
@@ -73,7 +78,7 @@ export default function BuildingDrawingLayer({
                             y1={firstPoint.y}
                             x2={tempPoint.x}
                             y2={tempPoint.y}
-                            stroke="rgba(47, 128, 237, 0.7)"
+                            stroke={colors.stroke}
                             strokeWidth="2"
                             strokeDasharray="4 4"
                         />
@@ -92,7 +97,7 @@ export default function BuildingDrawingLayer({
                         r={isDragged ? 4.5 : 3.5}
                         className="drawing-circle"
                         data-index={index}
-                        fill={isDragged ? "rgba(21, 101, 192, 0.85)" : "rgba(47, 128, 237, 0.6)"}
+                        fill={isDragged ? colors.draggedCircleFill : colors.circleFill}
                         stroke="rgba(255, 255, 255, 0.8)"
                         strokeWidth="1.5"
                         style={{

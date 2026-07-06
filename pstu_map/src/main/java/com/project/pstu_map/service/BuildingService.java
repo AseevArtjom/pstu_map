@@ -41,6 +41,12 @@ public class BuildingService {
         building.setLengthM(dto.getLengthM() != null ? dto.getLengthM() : 0.0);
         building.setDepthM(dto.getDepthM() != null ? dto.getDepthM() : 0.0);
 
+        if (dto.getIconPath() != null) {
+            UploadedIcon icon = uploadedIconRepository.findByFilePath(dto.getIconPath())
+                    .orElseThrow(() -> new RuntimeException("Иконка не найдена по пути: " + dto.getIconPath()));
+            building.setIcon(icon);
+        }
+
         return buildingRepository.save(building);
     }
 
@@ -67,9 +73,9 @@ public class BuildingService {
         building.setLengthM(dto.getLengthM() != null ? dto.getLengthM() : building.getLengthM());
         building.setDepthM(dto.getDepthM() != null ? dto.getDepthM() : building.getDepthM());
 
-        if (dto.getIcon_path() != null) {
-            UploadedIcon icon = uploadedIconRepository.findByFilePath(dto.getIcon_path())
-                    .orElseThrow(() -> new RuntimeException("Иконка не найдена по пути: " + dto.getIcon_path()));
+        if (dto.getIconPath() != null) {
+            UploadedIcon icon = uploadedIconRepository.findByFilePath(dto.getIconPath())
+                    .orElseThrow(() -> new RuntimeException("Иконка не найдена по пути: " + dto.getIconPath()));
             building.setIcon(icon);
         } else {
             building.setIcon(null);
@@ -88,9 +94,9 @@ public class BuildingService {
         dto.setHexColor(building.getHexColor());
 
         if (building.getIcon() != null) {
-            dto.setIcon_path(building.getIcon().getFilePath());
+            dto.setIconPath(building.getIcon().getFilePath());
         } else {
-            dto.setIcon_path(null);
+            dto.setIconPath(null);
         }
 
         if (building.getFloors() != null) {

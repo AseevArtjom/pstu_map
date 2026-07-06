@@ -27,22 +27,23 @@ public class FloorPlanController {
             @PathVariable Integer floorNumber,
             @RequestParam("file") MultipartFile file) {
         try {
-            String imagePath = fileService.saveFloorPlan(file, buildingId, floorNumber);
+            String prefix = "b" + buildingId + "_f" + floorNumber;
+            String imagePath = fileService.saveFile(file, FileService.FileType.FLOOR_PLAN, prefix);
+
             FloorPlanDto updatedDto = floorPlanService.saveOrUpdateFloorPlan(buildingId, floorNumber, imagePath);
 
             return ResponseEntity.ok(updatedDto);
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getLocalizedMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getLocalizedMessage());
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Ошибка при сохранении файла на сервере: " + e.getLocalizedMessage());
+                    .body("Ошибка при сохранении файла: " + e.getMessage());
         }
     }
 
     @GetMapping
     public ResponseEntity<List<FloorPlanDto>> getFloorsByBuilding(@PathVariable Integer buildingId) {
-        List<FloorPlanDto> floors = floorPlanService.findByBuildingId(buildingId);
-        return ResponseEntity.ok(floors);
+        return ResponseEntity.ok(floorPlanService.findByBuildingId(buildingId));
     }
 }

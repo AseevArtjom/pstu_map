@@ -14,6 +14,7 @@ interface InteractiveMapProps {
     setHoveredBuilding?: (id: number | null) => void;
     onSelectBuilding?: (id: number) => void;
     isDrawingMode?: boolean;
+    editingId?: number | null;
 }
 
 export default function InteractiveMap({
@@ -24,7 +25,8 @@ export default function InteractiveMap({
     hoveredBuilding = null,
     setHoveredBuilding,
     onSelectBuilding,
-    isDrawingMode
+    isDrawingMode,
+    editingId
 }: InteractiveMapProps) {
     const PADDING = 120;
     const INITIAL_SCALE = 1.2;
@@ -122,46 +124,79 @@ export default function InteractiveMap({
                                 style={{ pointerEvents: "none" }}
                             />
 
-                            {/* Все элементы карты и конструктора живут внутри этой группы */}
                             <g transform={`translate(${PADDING}, ${PADDING})`}>
                                 {isGlobalMap && buildings.map((b) => {
-                                    if (!b.mapPolygon) return null;
+                                    if (b.id === editingId || !b.mapPolygon) return null;
                                     const isHovered = !isDrawingMode && hoveredBuilding === b.id;
 
                                     return (
-                                        <g key={b.id}>
-                                            <polygon
-                                                points={b.mapPolygon}
-                                                fill={isHovered ? "rgba(47, 128, 237, 0.3)" : "rgba(47, 128, 237, 0.12)"}
-                                                stroke="#2F80ED"
-                                                strokeWidth={isHovered ? 2.5 : 1.5}
-                                                style={{
-                                                    cursor: "pointer",
-                                                    transition: "all 0.15s ease",
-                                                    pointerEvents: isDrawingMode ? "none" : "auto"
-                                                }}
-                                                onMouseEnter={() => setHoveredBuilding?.(b.id)}
-                                                onMouseLeave={() => setHoveredBuilding?.(null)}
-                                                onClick={() => onSelectBuilding?.(b.id)}
-                                            />
-
-                                            <g transform={`translate(${b.lengthM}, ${b.depthM})`} style={{ pointerEvents: "none",opacity: isDrawingMode ? 0.4 : 1}}>
-                                                <foreignObject x={-120} y={-14} width={240} height={30}>
-                                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: "6px" }}>
-                                                        <div style={{ display: "flex", transform: "scale(0.85)", marginRight: "-20px" }}>
-                                                            <BuildingIcon iconPath={b.icon_path} hovered={isHovered} />
-                                                        </div>
-                                                        <span style={{ color: isHovered ? "#fff" : "#2F80ED", fontWeight: "bold", fontSize: "13px", fontFamily: "Roboto, sans-serif", whiteSpace: "nowrap", textShadow: "0px 1px 3px rgba(0,0,0,0.8)", transition: "color 0.15s" }}>
-                                                            {b.name}
-                                                        </span>
-                                                    </div>
-                                                </foreignObject>
-                                            </g>
-                                        </g>
+                                        <polygon
+                                            key={`poly-${b.id}`}
+                                            points={b.mapPolygon}
+                                            fill={isHovered ? `${b.hex_color}4D` : `${b.hex_color}20`}
+                                            stroke={b.hex_color}
+                                            strokeWidth={isHovered ? 2.5 : 1.5}
+                                            style={{ cursor: "pointer", pointerEvents: isDrawingMode ? "none" : "auto" }}
+                                            onMouseEnter={() => setHoveredBuilding?.(b.id)}
+                                            onMouseLeave={() => setHoveredBuilding?.(null)}
+                                            onClick={() => onSelectBuilding?.(b.id)}
+                                        />
                                     );
                                 })}
 
                                 {children}
+
+                                {isGlobalMap && buildings.map((b) => {
+                                    if (b.id === editingId) return null;
+                                    const isHovered = !isDrawingMode && hoveredBuilding === b.id;
+
+                                    return (
+                                        <g
+                                            key={`label-${b.id}`}
+                                            transform={`translate(${b.lengthM}, ${b.depthM})`}
+                                            style={{ pointerEvents: "none", opacity: isDrawingMode ? 0.4 : 1 }}
+                                        >
+                                            <foreignObject x={-120} y={-14} width={240} height={30}>
+                                                <div style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    width: "100%",
+                                                    height: "100%"
+                                                }}>
+                                                    <BuildingIcon iconPath={b.icon_path} iconColor={b.hex_color}/>
+                                                    <span style={{
+                                                        color: isHovered ? "#fff" : b.hex_color,
+                                                        marginLeft: "4px",
+                                                        fontWeight: "bold",
+                                                        fontSize: "13px",
+                                                        fontFamily: "Roboto, sans-serif",
+                                                        whiteSpace: "nowrap",
+                                                        textShadow: isHovered ? `
+                                                            -1px -1px 0 #15161A, 
+                                                             1px -1px 0 #15161A, 
+                                                            -1px  1px 0 #15161A, 
+                                                             1px  1px 0 #15161A,
+                                                             0px 0px 8px ${b.hex_color}, 
+                                                             0px 1px 3px rgba(0,0,0,0.8)
+                                                            `
+                                                            :
+                                                            `
+                                                            -1px -1px 0 #15161A, 
+                                                             1px -1px 0 #15161A, 
+                                                            -1px  1px 0 #15161A, 
+                                                             1px  1px 0 #15161A,
+                                                             0px 1px 3px rgba(0,0,0,0.8)
+                                                             `,
+                                                        transition: "color 0.15s, text-shadow 0.3s ease"
+                                                    }}>
+                                                        {b.name}
+                                                    </span>
+                                                </div>
+                                            </foreignObject>
+                                        </g>
+                                    );
+                                })}
                             </g>
                         </svg>
                     </div>

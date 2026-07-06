@@ -14,7 +14,7 @@ interface ContextMenuProps {
     onDeleteBuilding: (id: number) => void;
 }
 
-export default function ContextMenu({
+export default function BuildingContextMenu({
                                         mouseX,
                                         mouseY,
                                         targetType,

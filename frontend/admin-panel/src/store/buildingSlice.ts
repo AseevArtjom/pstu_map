@@ -28,7 +28,7 @@ export const fetchAllBuildings = createAsyncThunk<Building[]>(
     }
 );
 
-export const createBuilding = createAsyncThunk<Building, Partial<Building>>(
+export const createBuilding = createAsyncThunk<Building,any>(
     'building/create',
     async (buildingData) => {
         const response = await http.post<Building>('/api/buildings', buildingData);

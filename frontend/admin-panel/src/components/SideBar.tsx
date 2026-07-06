@@ -11,7 +11,7 @@ import {
     CircularProgress
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useAppSelector } from "../store/store";
+import {useAppSelector} from "../store/store";
 import BuildingIcon from "./BuildingIcon.tsx";
 
 const DRAWER_WIDTH = 400;
@@ -25,6 +25,22 @@ interface SideBarProps {
     onBackToMap: () => void;
     availableFloors: number[];
 }
+
+const scrollbarStyles = {
+    "&::-webkit-scrollbar": {
+        width: "6px",
+    },
+    "&::-webkit-scrollbar-track": {
+        background: "transparent",
+    },
+    "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "rgba(255, 255, 255, 0.15)",
+        borderRadius: "10px",
+    },
+    "&::-webkit-scrollbar-thumb:hover": {
+        backgroundColor: "rgba(255, 255, 255, 0.3)",
+    },
+};
 
 export default function SideBar({
                                     selectedBuilding,
@@ -49,18 +65,15 @@ export default function SideBar({
                     boxSizing: "border-box",
                     backgroundColor: "#14161A",
                     color: "#E4E6EB",
-                    borderRight: "1px solid rgba(255, 255, 255, 0.08)"
+                    borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+                    ...scrollbarStyles,
+                    overflowY: "auto",
                 },
             }}
         >
             <Box sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ color: "#F0F2F5", fontWeight: 600 }}>
                     Админ панель
-                </Typography>
-                <Typography variant="caption" sx={{ color: "#90949C", display: "block", mt: 0.5 }}>
-                    {selectedBuilding
-                        ? `Корпус №${selectedBuilding} — Этаж ${selectedFloor || " "}`
-                        : "Выберите корпус на карте или в списке"}
                 </Typography>
             </Box>
 
@@ -90,11 +103,14 @@ export default function SideBar({
                                     "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.04)" }
                                 }}
                             >
-                                <BuildingIcon iconPath={b.icon_path} hovered={hoveredBuilding === b.id} />
+                                <BuildingIcon iconPath={b.icon_path} iconColor={b.hex_color}/>
 
                                 <ListItemText
                                     primary={b.name}
                                     secondary="Планы этажей готовы"
+                                    sx={{
+                                        marginLeft: "16px"
+                                    }}
                                     slotProps={{
                                         primary: { style: { color: "#E4E6EB", fontWeight: 500 } },
                                         secondary: { style: { color: "#00B074", marginTop: "2px" } }
