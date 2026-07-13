@@ -1,26 +1,25 @@
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import { BASE_URL } from "../http.ts";
 
-interface BuildingIconProps {
+interface EntityIconProps {
     iconPath: string | null;
     iconColor: string;
+    size?: number;
 }
 
-export default function BuildingIcon({ iconPath, iconColor }: BuildingIconProps) {
+export default function EntityIcon({ iconPath, iconColor, size = 24 }: EntityIconProps) {
     if (!iconPath) {
         return (
             <ApartmentIcon
-                sx={{
-                    color: iconColor,
-                }}
+                sx={{ color: iconColor, fontSize: size }}
             />
         );
     }
 
     return (
         <div style={{
-            width: 24,
-            height: 24,
+            width: size,
+            height: size,
             position: 'relative',
             overflow: 'hidden',
             display: 'flex',
@@ -32,10 +31,10 @@ export default function BuildingIcon({ iconPath, iconColor }: BuildingIconProps)
                 src={`${BASE_URL}${iconPath}`}
                 alt=""
                 style={{
-                    width: '24px',
-                    height: '24px',
-                    filter: `drop-shadow(24px 0 0 ${iconColor})`,
-                    transform: `translateX(-24px)`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    filter: `drop-shadow(${size}px 0 0 ${iconColor})`,
+                    transform: `translateX(-${size}px)`,
                 }}
             />
         </div>

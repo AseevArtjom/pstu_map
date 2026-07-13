@@ -1,53 +1,29 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 
 import SideBar from "../components/SideBar";
 import InteractiveMap from "../components/InteractiveMap";
-import RoomLabels from "../components/RoomLabels.tsx";
-import BuildingContextMenu from "../components/BuildingContextMenu.tsx";
-import BuildingDrawingLayer from "../components/BuildingDrawingLayer";
+import BuildingContextMenu from "../components/context/BuildingContextMenu.tsx";
+import PolygonDrawingLayer from "../components/layer/PolygonDrawingLayer.tsx";
 
 import { useAppDispatch, useAppSelector } from "../store/store.ts";
-import {deleteBuilding, fetchAllBuildings, setSelectedFloor} from "../store/buildingSlice.ts";
+import {
+    createBuilding,
+    deleteBuilding,
+    fetchAllBuildings,
+    setSelectedFloor,
+    updateBuilding
+} from "../store/buildingSlice.ts";
 import { fetchRoomsByBuilding } from "../store/roomSlice.ts";
 import { fetchFloorsByBuilding } from "../store/floorPlanSlice.ts";
 import { BASE_URL } from "../http.ts";
 import { useAuthService } from "../hooks/useAuthService.ts";
-import {parsePoints, useBuildingConstructor} from "../hooks/useBuildingConstructor.ts";
-import { usePolygonColors } from "../hooks/usePolygonColors.ts";
-
+import {parsePoints, usePolygonConstructor} from "../hooks/usePolygonConstructor.ts";
 import campusBaseImg from "@shared/assets/campus_base.png";
 import AddBuildingStep from "../modal/building/AddBuildingStep.tsx";
-
-interface MapPolygonProps {
-    building: any;
-    isHovered: boolean;
-    onMouseEnter: () => void;
-    onMouseLeave: () => void;
-    onClick: () => void;
-}
-
-function MapPolygon({ building, isHovered, onMouseEnter, onMouseLeave, onClick }: MapPolygonProps) {
-    const colors = usePolygonColors(building.hex_color, isHovered);
-
-    return (
-        <polygon
-            points={building.mapPolygon}
-            data-building-id={building.id}
-            fill={colors.fill}
-            stroke={colors.stroke}
-            strokeWidth={isHovered ? 2.5 : 1.5}
-            style={{
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-            }}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            onClick={onClick}
-        />
-    );
-}
+import FloorPage from "./FloorPage.tsx";
+import MapPolygon from "../components/MapPolygon.tsx";
 
 export default function DashboardPage() {
     const { logout, checkHasRole } = useAuthService();
@@ -56,13 +32,23 @@ export default function DashboardPage() {
 
     const [selectedBuilding, setSelectedBuilding] = useState<number | null>(null);
     const [hoveredBuilding, setHoveredBuilding] = useState<number | null>(null);
-    const [currentMapSize, setCurrentMapSize] = useState({ width: 805, height: 780 });
 
-    const constructor = useBuildingConstructor(currentMapSize, selectedBuilding);
+    const buildingConstructor = usePolygonConstructor<number>(
+        "data-building-id",
+        (pointsStr, id) => {
+            if (id) {
+                const existing = buildings.find(b => b.id === id);
+                dispatch(updateBuilding({ ...existing, id, mapPolygon: pointsStr }));
+            } else {
+                dispatch(createBuilding({ mapPolygon: pointsStr }));
+            }
+        },
+        Number
+    );
 
     const { buildings, selectedFloor } = useAppSelector((state) => state.building);
     const { floors } = useAppSelector((state) => state.floorPlan);
-    const currentBuilding = buildings.find(b => b.id === constructor.editingId);
+    const currentBuilding = buildings.find(b => b.id === buildingConstructor.editingId);
 
     useEffect(() => {
         (async () => {
@@ -93,11 +79,6 @@ export default function DashboardPage() {
         }
     }, [floors, selectedBuilding, dispatch]);
 
-
-    const handleDimensionsLoad = useCallback((w: number, h: number) => {
-        setCurrentMapSize({ width: w, height: h });
-    }, []);
-
     if (isAdmin === null) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#14161A' }}>
@@ -122,7 +103,7 @@ export default function DashboardPage() {
 
     return (
         <Box
-            onMouseUp={constructor.handleMapMouseUp}
+            onMouseUp={buildingConstructor.handleMapMouseUp}
             sx={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}
         >
             <SideBar
@@ -136,16 +117,20 @@ export default function DashboardPage() {
             />
 
             <Box
-                ref={constructor.mapContainerRef}
-                onContextMenu={constructor.handleContextMenu}
-                onMouseMove={constructor.handleMapMouseMove}
-                onDoubleClick={constructor.handleMapDoubleClick}
+                ref={buildingConstructor.mapContainerRef}
+                onContextMenu={(e) =>{
+                    if(selectedBuilding === null) {
+                        buildingConstructor.handleContextMenu(e);
+                    }
+                }}
+                onMouseMove={buildingConstructor.handleMapMouseMove}
+                onDoubleClick={buildingConstructor.handleMapDoubleClick}
                 sx={{
                     flexGrow: 1, height: '100%', position: 'relative', display: 'flex', flexDirection: 'column',
-                    cursor: constructor.isDrawingMode ? 'crosshair' : 'default'
+                    cursor: buildingConstructor.isDrawingMode ? 'crosshair' : 'default'
                 }}
             >
-                {constructor.isDrawingMode && (
+                {buildingConstructor.isDrawingMode && (
                     <Box sx={{ p: 1.5, bgcolor: "#2F80ED", color: "#fff", zIndex: 10, textAlign: 'center', boxShadow: 3 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                             Двойной клик ЛКМ — создать новую точку. Зажмите ЛКМ на точке, чтобы двигать её. (Enter — сохранить, Esc — отмена)
@@ -154,8 +139,8 @@ export default function DashboardPage() {
                 )}
 
                 {selectedBuilding !== null && (
-                    <Box sx={{ p: 2, bgcolor: "rgba(255,255,255,0.9)", borderBottom: "1px solid #ccc", zIndex: 10 }}>
-                        <Typography variant="h5" sx={{ color: "#14161A" }}>
+                    <Box sx={{ p: 2, bgcolor: "#14161A",borderBottom: "1px solid rgba(255, 255, 255, 0.08)"}}>
+                        <Typography variant="h5" sx={{ color: "#fff",fontWeight: 500 }}>
                             {buildings.find(b => b.id === selectedBuilding)?.name || "Загрузка..."}, Этаж {selectedFloor || " "}
                         </Typography>
                     </Box>
@@ -168,11 +153,10 @@ export default function DashboardPage() {
                         hoveredBuilding={hoveredBuilding}
                         setHoveredBuilding={setHoveredBuilding}
                         onSelectBuilding={(id) => setSelectedBuilding(id)}
-                        onDimensionsLoad={handleDimensionsLoad}
-                        isDrawingMode={constructor.isDrawingMode}
-                        editingId={constructor.editingId}
+                        isDrawingMode={buildingConstructor.isDrawingMode}
+                        editingId={buildingConstructor.editingId}
                     >
-                        {!constructor.isDrawingMode && buildings.map((b) => (
+                        {!buildingConstructor.isDrawingMode && buildings.map((b) => (
                             <MapPolygon
                                 key={b.id}
                                 building={b}
@@ -183,32 +167,23 @@ export default function DashboardPage() {
                             />
                         ))}
 
-                        {constructor.isDrawingMode && (
-                            <BuildingDrawingLayer
-                                mapSize={currentMapSize}
-                                polygonPoints={constructor.polygonPoints}
-                                tempPointsString={constructor.tempPointsString}
-                                tempPoint={constructor.tempPoint}
-                                draggedPointIndex={constructor.draggedPointIndex}
-                                onPointMouseDown={constructor.handlePointMouseDown}
-                                onPointContextMenu={constructor.handlePointContextMenu}
+                        {buildingConstructor.isDrawingMode && (
+                            <PolygonDrawingLayer
+                                polygonPoints={buildingConstructor.polygonPoints}
+                                tempPoint={buildingConstructor.tempPoint}
+                                draggedPointIndex={buildingConstructor.draggedPointIndex}
+                                onPointMouseDown={buildingConstructor.handlePointMouseDown}
+                                onPointContextMenu={buildingConstructor.handlePointContextMenu}
                                 fillColor={currentBuilding?.hex_color}
                             />
                         )}
                     </InteractiveMap>
                 ) : (
-                    <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", flexGrow: 1 }}>
-                        {selectedFloor && (
-                            <InteractiveMap bgImage={bgMapImage} onDimensionsLoad={handleDimensionsLoad}>
-                                <RoomLabels
-                                    selectedFloor={selectedFloor}
-                                    mapWidth={currentMapSize.width}
-                                    mapHeight={currentMapSize.height}
-                                    onRoomClick={(room) => console.log(room.name)}
-                                />
-                            </InteractiveMap>
-                        )}
-                    </Box>
+                    <FloorPage
+                        bgMapImage={bgMapImage}
+                        selectedFloor={selectedFloor}
+                        buildingId={selectedBuilding}
+                    />
                 )}
 
                 <Button
@@ -223,17 +198,20 @@ export default function DashboardPage() {
             </Box>
 
             <BuildingContextMenu
-                mouseX={constructor.contextMenu.mouseX}
-                mouseY={constructor.contextMenu.mouseY}
-                targetType={constructor.contextMenu.targetType}
-                targetId={constructor.contextMenu.targetId}
-                onClose={constructor.handleCloseContextMenu}
-                onAddBuilding={constructor.startDrawingMode}
+                mouseX={buildingConstructor.contextMenu.mouseX}
+                mouseY={buildingConstructor.contextMenu.mouseY}
+                targetType={buildingConstructor.contextMenu.targetType}
+                targetId={buildingConstructor.contextMenu.targetId}
+                onClose={buildingConstructor.handleCloseContextMenu}
+                onAddBuilding={buildingConstructor.startDrawingMode}
                 onEditBuilding={(id) => {
                     const building = buildings.find(b => b.id === id);
                     if (building && building.mapPolygon) {
                         const points = parsePoints(building.mapPolygon);
-                        constructor.setPointsFromExternal(points, id);
+                        buildingConstructor.setPolygonPoints(points);
+                        buildingConstructor.setEditingId(id);
+                        buildingConstructor.setIsDrawingMode(true);
+                        buildingConstructor.setIsEditing(true);
                     }
                 }}
                 onDeleteBuilding={(id) => {
@@ -245,14 +223,14 @@ export default function DashboardPage() {
 
             <AddBuildingStep
                 key={currentBuilding?.id || 'new'}
-                open={constructor.isSaveModalOpen}
+                open={buildingConstructor.isSaveModalOpen}
                 onClose={() => {
-                    constructor.setIsSaveModalOpen(false)
-                    constructor.resetDrawing();
+                    buildingConstructor.setIsSaveModalOpen(false);
+                    buildingConstructor.resetDrawing();
                 }}
-                points={constructor.polygonPoints}
+                points={buildingConstructor.polygonPoints}
                 initialData={
-                    constructor.isEditing && currentBuilding
+                    buildingConstructor.isEditing && currentBuilding
                         ? {
                             id: currentBuilding.id,
                             name: currentBuilding.name,

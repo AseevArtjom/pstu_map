@@ -1,0 +1,120 @@
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import type { Edge } from "@shared/types/Edge.ts";
+import type { EdgeResponseDto } from "@shared/types/response/EdgeResponseDto.ts";
+import type { EdgeCreateDto } from "../types/edge/EdgeCreateDto.ts";
+import type { EdgeUpdateDto } from "../types/edge/EdgeUpdateDto.ts";
+import http from "../http.ts";
+import type { RootState } from "./store.ts";
+import {deleteNode} from "./nodeSlice.ts";
+
+interface EdgeState {
+    edges: Edge[];
+    loading: boolean;
+}
+
+const initialState: EdgeState = {
+    edges: [],
+    loading: false,
+};
+
+const resolveEdges = (dtos: EdgeResponseDto[], nodes: { id: string }[]): Edge[] => {
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+
+    return dtos.reduce<Edge[]>((acc, dto) => {
+        const fromNode = nodeMap.get(dto.from);
+        const toNode = nodeMap.get(dto.to);
+
+        if (!fromNode || !toNode) {
+            console.warn(`Ребро ${dto.id} ссылается на неизвестный узел (${dto.from} -> ${dto.to}), пропущено`);
+            return acc;
+        }
+
+        acc.push({
+            id: dto.id,
+            fromNode: fromNode as any,
+            toNode: toNode as any,
+            weight: dto.weight,
+            type: dto.type,
+        });
+        return acc;
+    }, []);
+};
+
+export const fetchEdgesByBuilding = createAsyncThunk<Edge[], number, { state: RootState }>(
+    'edge/fetchByBuilding',
+    async (buildingId, { getState }) => {
+        const response = await http.get<EdgeResponseDto[]>(`/api/edges?buildingId=${buildingId}`);
+        const { nodes } = getState().node;
+        return resolveEdges(response.data, nodes);
+    }
+);
+
+export const createEdge = createAsyncThunk<Edge, EdgeCreateDto, { state: RootState }>(
+    'edge/create',
+    async (dto, { getState }) => {
+        const response = await http.post<EdgeResponseDto>('/api/edges', dto);
+        const { nodes } = getState().node;
+        const [edge] = resolveEdges([response.data], nodes);
+        return edge;
+    }
+);
+
+export const updateEdge = createAsyncThunk<Edge, { id: number; data: EdgeUpdateDto }, { state: RootState }>(
+    'edge/update',
+    async ({ id, data }, { getState }) => {
+        const response = await http.put<EdgeResponseDto>(`/api/edges/${id}`, data);
+        const { nodes } = getState().node;
+        const [edge] = resolveEdges([response.data], nodes);
+        return edge;
+    }
+);
+
+export const deleteEdge = createAsyncThunk<number, number>(
+    'edge/delete',
+    async (id) => {
+        await http.delete(`/api/edges/${id}`);
+        return id;
+    }
+);
+
+const edgeSlice = createSlice({
+    name: 'edge',
+    initialState,
+    reducers: {
+        clearEdges: (state) => {
+            state.edges = [];
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchEdgesByBuilding.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchEdgesByBuilding.fulfilled, (state, action) => {
+                state.loading = false;
+                state.edges = action.payload;
+            })
+            .addCase(fetchEdgesByBuilding.rejected, (state) => {
+                state.loading = false;
+            })
+            .addCase(createEdge.fulfilled, (state, action: PayloadAction<Edge>) => {
+                state.edges.push(action.payload);
+            })
+            .addCase(updateEdge.fulfilled, (state, action: PayloadAction<Edge>) => {
+                const index = state.edges.findIndex(e => e.id === action.payload.id);
+                if (index !== -1) state.edges[index] = action.payload;
+            })
+            .addCase(deleteEdge.fulfilled, (state, action) => {
+                state.edges = state.edges.filter(e => e.id !== action.payload);
+            })
+            .addCase(deleteNode.fulfilled, (state, action) => {
+            const deletedNodeId = action.meta.arg;
+            state.edges = state.edges.filter(
+                edge => edge.fromNode.id !== deletedNodeId && edge.toNode.id !== deletedNodeId
+            );
+        });
+    },
+});
+
+export const { clearEdges } = edgeSlice.actions;
+export default edgeSlice.reducer;

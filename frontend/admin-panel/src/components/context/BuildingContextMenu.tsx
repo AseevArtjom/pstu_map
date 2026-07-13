@@ -6,7 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 interface ContextMenuProps {
     mouseX: number | null;
     mouseY: number | null;
-    targetType: 'map' | 'building' | null;
+    targetType: 'map' | 'item' | null;
     targetId?: number;
     onClose: () => void;
     onAddBuilding: () => void;
@@ -49,9 +49,9 @@ export default function BuildingContextMenu({
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
                         minWidth: 180,
-                        overflow: 'hidden'
+                        overflow: 'hidden',
                     }
-                }
+                },
             }}
         >
             {targetType === 'map' && (
@@ -79,7 +79,7 @@ export default function BuildingContextMenu({
                 </MenuItem>
             )}
 
-            {targetType === 'building' && targetId && [
+            {targetType === 'item' && targetId && [
                 <MenuItem
                     key="edit"
                     onClick={() => {

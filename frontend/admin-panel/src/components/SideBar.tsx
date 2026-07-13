@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {useAppSelector} from "../store/store";
-import BuildingIcon from "./BuildingIcon.tsx";
+import BuildingIcon from "./EntityIcon.tsx";
 
 const DRAWER_WIDTH = 400;
 

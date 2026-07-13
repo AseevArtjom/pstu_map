@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-const hexToRgba = (hex: string, opacity: number) => {
+export const hexToRgba = (hex: string | undefined | null, opacity: number) => {
     const cleanHex = (hex || '#2F80ED').replace('#', '');
     const r = parseInt(cleanHex.substring(0, 2), 16);
     const g = parseInt(cleanHex.substring(2, 4), 16);
@@ -8,7 +8,7 @@ const hexToRgba = (hex: string, opacity: number) => {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
-export const useBuildingColor = (hexColor: string | undefined | null) => {
+export const useDrawingColor = (hexColor: string | undefined | null) => {
     const color = hexColor || '#2F80ED';
 
     return useMemo(() => ({

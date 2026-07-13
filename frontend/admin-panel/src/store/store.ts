@@ -5,6 +5,9 @@ import mapReducer from './mapSlice';
 import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import floorPlanReducer from "./floorPlanSlice.ts";
 import iconReducer from "./iconSlice.ts";
+import roomTypeReducer from "./roomTypeSlice.ts";
+import nodeReducer from "./nodeSlice.ts";
+import edgeReducer from "./edgeSlice.ts";
 
 export const store = configureStore({
     reducer: {
@@ -12,7 +15,10 @@ export const store = configureStore({
         room: roomReducer,
         map: mapReducer,
         floorPlan: floorPlanReducer,
-        icon: iconReducer
+        icon: iconReducer,
+        roomType: roomTypeReducer,
+        node: nodeReducer,
+        edge: edgeReducer,
     },
 });
 

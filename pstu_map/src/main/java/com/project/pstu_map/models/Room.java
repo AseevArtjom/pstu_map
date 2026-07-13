@@ -1,35 +1,45 @@
 package com.project.pstu_map.models;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.context.annotation.Lazy;
 
 @Entity
 @Table(name = "rooms")
 @Data
-public class Room
-{
+public class Room {
+
     @Id
     private String id;
+
+    @Column(nullable = false)
     private String name;
+
     private int floor;
-    private String type;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "building_id",nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "building_id")
     private Building building;
 
-    @OneToOne
-    @JoinColumn(name = "node_id",nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "node_id")
     private Node node;
 
-    @Column(name = "qr_code",unique = true)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "room_type_id", nullable = false)
+    private RoomType roomType;
+
+    @Column(name = "qr_code", unique = true, length = 100)
     private String qrCode;
 
-    @Column(name = "room_polygon",columnDefinition = "TEXT")
+    @Column(name = "room_polygon", columnDefinition = "TEXT")
     private String roomPolygon;
+
+    @Column(name = "custom_color", length = 7)
+    private String customColor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "custom_icon_id")
+    private UploadedIcon customIcon;
 }

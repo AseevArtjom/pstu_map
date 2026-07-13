@@ -3,7 +3,7 @@ package com.project.pstu_map.dto.node;
 import lombok.Data;
 
 @Data
-public class NodeDto
+public class NodeCreateDto
 {
     private String id;
     private int floor;

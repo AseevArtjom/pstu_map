@@ -7,7 +7,8 @@ public class RoomDto {
     private String id;
     private String name;
     private int floor;
-    private String type;
+    private String typeSlug;
     private String node;
-    private String qr;
+    private String roomPolygon;
+    private String calculatedColor;
 }
