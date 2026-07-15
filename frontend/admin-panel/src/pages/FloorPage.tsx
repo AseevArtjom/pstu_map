@@ -1,31 +1,42 @@
 import {useEffect, useMemo, useState} from "react";
-import {Box, Button, Typography} from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
+import { useConfirm } from "material-ui-confirm";
 import InteractiveMap from "../components/InteractiveMap.tsx";
 import RoomContextMenu from "../components/context/RoomContextMenu.tsx";
 import RoomFormModal from "../modal/room/RoomFormModal.tsx";
-import {usePolygonConstructor, formatPoints, parsePoints} from "../hooks/usePolygonConstructor.ts";
+import { usePolygonConstructor, formatPoints, parsePoints } from "../hooks/usePolygonConstructor.ts";
 import PolygonDrawingLayer from "../components/layer/PolygonDrawingLayer.tsx";
 import { useAppDispatch, useAppSelector } from "../store/store.ts";
 import { createRoom, updateRoom, deleteRoom, fetchRoomsByBuilding } from "../store/roomSlice.ts";
 import { fetchIcons } from "../store/iconSlice.ts";
 import { fetchRoomTypes } from "../store/roomTypeSlice.ts";
 import RoomPolygon from "../components/RoomPolygon.tsx";
-import {useGraphConstructor} from "../hooks/useGraphConstructor.ts";
+import { useGraphConstructor } from "../hooks/useGraphConstructor.ts";
 import GraphLayer from "../components/layer/GraphLayer.tsx";
-import {createEdge, deleteEdge, fetchEdgesByBuilding} from "../store/edgeSlice.ts";
-import {createNode, deleteNode, fetchNodesByBuilding, updateNode} from "../store/nodeSlice.ts";
+import { createEdge, deleteEdge, fetchEdgesByBuilding } from "../store/edgeSlice.ts";
+import { createNode, deleteNode, fetchNodesByBuilding, updateNode } from "../store/nodeSlice.ts";
 
 interface FloorPageProps {
     bgMapImage: string;
     selectedFloor: number | null;
     buildingId: number;
+    searchQuery: string;
+    hoveredRoomId: string | null;
+    setHoveredRoomId: (id: string | null) => void;
 }
 
-export default function FloorPage({ bgMapImage, selectedFloor, buildingId }: FloorPageProps) {
+export default function FloorPage({
+                                      bgMapImage,
+                                      selectedFloor,
+                                      buildingId,
+                                      searchQuery,
+                                      hoveredRoomId,
+                                      setHoveredRoomId
+                                  }: FloorPageProps) {
     const dispatch = useAppDispatch();
+    const confirm = useConfirm();
 
     const roomConstructor = usePolygonConstructor<string>("data-room-id", () => {});
-    const [hoveredRoomId, setHoveredRoomId] = useState<string | null>(null);
 
     const { icons } = useAppSelector((state) => state.icon);
     const { roomTypes } = useAppSelector((state) => state.roomType);
@@ -224,16 +235,30 @@ export default function FloorPage({ bgMapImage, selectedFloor, buildingId }: Flo
             <InteractiveMap bgImage={bgMapImage}>
                 {floorRooms
                     .filter((room) => room.id !== roomConstructor.editingId)
-                    .map((room) => (
-                        <RoomPolygon
-                            key={room.id}
-                            room={room}
-                            isHovered={hoveredRoomId === room.id}
-                            onMouseEnter={() => setHoveredRoomId(room.id)}
-                            onMouseLeave={() => setHoveredRoomId(null)}
-                            onClick={() => console.log("Клик по комнате:", room.name)}
-                        />
-                    ))}
+                    .map((room) => {
+                        const isMatched = searchQuery.trim() === "" ||
+                            room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (room.description && room.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                        return (
+                            <g
+                                key={room.id}
+                                style={{
+                                    transition: "opacity 0.25s ease-in-out",
+                                    opacity: isMatched ? 1 : 0.15,
+                                    pointerEvents: isMatched ? "auto" : "none"
+                                }}
+                            >
+                                <RoomPolygon
+                                    room={room}
+                                    isHovered={hoveredRoomId === room.id}
+                                    onMouseEnter={() => setHoveredRoomId(room.id)}
+                                    onMouseLeave={() => setHoveredRoomId(null)}
+                                    onClick={() => console.log("Клик по комнате:", room.name)}
+                                />
+                            </g>
+                        );
+                    })}
 
                 {roomConstructor.isDrawingMode && (
                     <PolygonDrawingLayer
@@ -267,7 +292,12 @@ export default function FloorPage({ bgMapImage, selectedFloor, buildingId }: Flo
                                 const occupyingRoom = nodeToRoomMap[id];
 
                                 if (occupyingRoom && occupyingRoom.id !== roomConstructor.editingId) {
-                                    alert(`Этот узел уже принадлежит комнате: "${occupyingRoom.name}"`);
+                                    confirm({
+                                        title: 'Узел уже занят',
+                                        description: `Этот узел уже привязан к комнате: "${occupyingRoom.name}". Пожалуйста, выберите другой узел.`,
+                                        confirmationText: 'ОК',
+                                        hideCancelButton: true,
+                                    });
                                     return;
                                 }
 
@@ -288,10 +318,28 @@ export default function FloorPage({ bgMapImage, selectedFloor, buildingId }: Flo
                             });
                         }}
                         onNodeContextMenu={(id) => {
-                            dispatch(deleteNode(id));
+                            confirm({
+                                title: 'Удалить узел?',
+                                description: 'Вы уверены, что хотите полностью удалить этот узел и все связанные пути?',
+                                confirmationText: 'Удалить',
+                                cancellationText: 'Отмена',
+                            }).then(({ confirmed }) => {
+                                if (confirmed) {
+                                    dispatch(deleteNode(id));
+                                }
+                            });
                         }}
                         onEdgeContextMenu={(edgeId) => {
-                            dispatch(deleteEdge(edgeId));
+                            confirm({
+                                title: 'Удалить путь?',
+                                description: 'Вы уверены, что хотите удалить эту связь между узлами?',
+                                confirmationText: 'Удалить',
+                                cancellationText: 'Отмена',
+                            }).then(({ confirmed }) => {
+                                if (confirmed) {
+                                    dispatch(deleteEdge(edgeId));
+                                }
+                            });
                         }}
                     />
                 )}
@@ -319,8 +367,16 @@ export default function FloorPage({ bgMapImage, selectedFloor, buildingId }: Flo
                     roomConstructor.handleCloseContextMenu();
                 }}
                 onDeleteRoom={(id) => {
-                    dispatch(deleteRoom(id));
-                    roomConstructor.handleCloseContextMenu();
+                    confirm({
+                        title: 'Удалить комнату?',
+                        description: 'Вы действительно хотите безвозвратно удалить эту комнату?',
+                        confirmationText: 'Удалить',
+                        cancellationText: 'Отмена',
+                    }).then(({ confirmed }) => {
+                        if (confirmed) {
+                            dispatch(deleteRoom(id));
+                        }
+                    });
                 }}
             />
 

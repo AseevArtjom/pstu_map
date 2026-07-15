@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { useConfirm } from "material-ui-confirm";
 
 import SideBar from "../components/SideBar";
 import InteractiveMap from "../components/InteractiveMap";
@@ -29,6 +30,9 @@ export default function DashboardPage() {
     const { logout, checkHasRole } = useAuthService();
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
     const dispatch = useAppDispatch();
+    const confirm = useConfirm();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [hoveredRoomId, setHoveredRoomId] = useState<string | null>(null);
 
     const [selectedBuilding, setSelectedBuilding] = useState<number | null>(null);
     const [hoveredBuilding, setHoveredBuilding] = useState<number | null>(null);
@@ -112,8 +116,15 @@ export default function DashboardPage() {
                 setHoveredBuilding={setHoveredBuilding}
                 handleSelectBuilding={(id) => setSelectedBuilding(id)}
                 onChangeFloor={(floor) => dispatch(setSelectedFloor(floor))}
-                onBackToMap={() => setSelectedBuilding(null)}
+                onBackToMap={() => {
+                    setSelectedBuilding(null);
+                    setHoveredRoomId(null);
+                }}
                 availableFloors={floors.map(f => f.floorNumber)}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                hoveredRoomId={hoveredRoomId}
+                setHoveredRoomId={setHoveredRoomId}
             />
 
             <Box
@@ -183,6 +194,9 @@ export default function DashboardPage() {
                         bgMapImage={bgMapImage}
                         selectedFloor={selectedFloor}
                         buildingId={selectedBuilding}
+                        searchQuery={searchQuery}
+                        hoveredRoomId={hoveredRoomId}
+                        setHoveredRoomId={setHoveredRoomId}
                     />
                 )}
 
@@ -215,9 +229,16 @@ export default function DashboardPage() {
                     }
                 }}
                 onDeleteBuilding={(id) => {
-                    if (window.confirm('Вы уверены, что хотите удалить этот корпус?')) {
-                        dispatch(deleteBuilding(id));
-                    }
+                    confirm({
+                        title: 'Удалить корпус?',
+                        description: 'Вы уверены, что хотите удалить этот корпус? Все связанные этажи, комнаты и связи будут также удалены.',
+                        confirmationText: 'Удалить',
+                        cancellationText: 'Отмена',
+                    }).then(({ confirmed }) => {
+                        if (confirmed) {
+                            dispatch(deleteBuilding(id));
+                        }
+                    });
                 }}
             />
 

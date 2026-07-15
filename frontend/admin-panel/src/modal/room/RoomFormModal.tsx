@@ -7,9 +7,10 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import type { RoomType } from "@shared/types/RoomType.ts";
 import IconItemContent from "../../components/IconItemContent.tsx";
 import { useAppDispatch } from "../../store/store.ts";
-import { uploadIcon } from "../../store/iconSlice.ts";
+import {deleteIcon, uploadIcon} from "../../store/iconSlice.ts";
 import { createRoomType } from "../../store/roomTypeSlice.ts";
 import {AddCircleOutlined} from "@mui/icons-material";
+import {useConfirm} from "material-ui-confirm";
 
 interface UploadedIconDto {
     id: number;
@@ -56,6 +57,7 @@ export default function RoomFormModal({
                                           isOpen, onClose, onSave,onSelectNodeReq, polygonPoints, floor, roomTypes, availableIcons, initialData
                                       }: RoomFormModalProps) {
     const dispatch = useAppDispatch();
+    const confirm = useConfirm();
 
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -183,6 +185,25 @@ export default function RoomFormModal({
     const handleIconUpload = async (file: File) => {
         const uploaded = await dispatch(uploadIcon(file)).unwrap();
         setIconId(uploaded.id);
+    };
+
+    const handleIconDelete = async (iconIdToDelete: number, event: React.MouseEvent) => {
+        event.preventDefault();
+
+        const { confirmed } = await confirm({
+            title: 'Удалить иконку?',
+            description: 'Иконка будет удалена безвозвратно.',
+            confirmationText: 'Удалить',
+            cancellationText: 'Отмена',
+        });
+
+        if (!confirmed) return;
+
+        await dispatch(deleteIcon(iconIdToDelete)).unwrap();
+
+        if (iconId === iconIdToDelete) {
+            setIconId(null);
+        }
     };
 
     const handleSave = () => {
@@ -385,7 +406,7 @@ export default function RoomFormModal({
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                         <Typography sx={{ fontSize: '13px', color: nodeId ? '#2F80ED' : 'rgba(255,255,255,0.4)' }}>
-                            {nodeId ? `Узел привязан (ID: ...${nodeId.slice(-8)})` : 'Узел не выбран. Робот не сможет проложить путь сюда.'}
+                            {nodeId ? `Узел привязан (ID: ...${nodeId.slice(-8)})` : 'Узел не выбран. Невозможно проложить путь сюда'}
                         </Typography>
                         <Button
                             variant="outlined"
@@ -465,6 +486,7 @@ export default function RoomFormModal({
                                         <Grid key={icon.id}>
                                             <Paper
                                                 onClick={() => setIconId(icon.id)}
+                                                onContextMenu={(e) => handleIconDelete(icon.id, e)}
                                                 elevation={0}
                                                 sx={{
                                                     width: 48, height: 48,

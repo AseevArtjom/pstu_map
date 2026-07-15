@@ -6,13 +6,16 @@ import { LogtoProvider } from "@logto/react";
 import { logtoConfig } from "./config/logtoConfig.ts";
 import { Provider } from 'react-redux';
 import { store } from './store/store.ts';
+import CustomConfirmProvider from "./components/CustomConfirmProvider.tsx";
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <Provider store={store}>
-            <LogtoProvider config={logtoConfig}>
-                <App />
-            </LogtoProvider>
-        </Provider>
+        <CustomConfirmProvider>
+            <Provider store={store}>
+                <LogtoProvider config={logtoConfig}>
+                    <App />
+                </LogtoProvider>
+            </Provider>
+        </CustomConfirmProvider>
     </StrictMode>,
 )

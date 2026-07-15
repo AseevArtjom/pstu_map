@@ -1,11 +1,9 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, Box, TextField, IconButton
+    Button, Box, TextField, IconButton, Typography
 } from '@mui/material';
-import { useAppDispatch } from "../../store/store.ts";
-import { uploadFloorPlan } from "../../store/floorPlanSlice.ts";
-import {DeleteOutlined} from "@mui/icons-material";
+import { DeleteOutlined } from "@mui/icons-material";
 
 const inputStyle = {
     transition: 'all 0.2s ease-in-out',
@@ -14,39 +12,61 @@ const inputStyle = {
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#2F80ED !important' }
 };
 
+interface FloorDraft {
+    floorNumber: number;
+    file: File | null;
+}
+
 interface AddBuildingFloorsModalProps {
     open: boolean;
     onClose: () => void;
-    buildingId: number;
+    floors: FloorDraft[];
+    onFloorsChange: (floors: FloorDraft[]) => void;
     onBack: () => void;
-    onFinish: () => void;
+    onSave: () => void;
+    isSaving: boolean;
 }
 
 export default function AddBuildingFloorsModal({
-                                                   open, onClose, buildingId, onBack, onFinish
+                                                   open, onClose, floors, onFloorsChange, onBack, onSave, isSaving
                                                }: AddBuildingFloorsModalProps) {
-    const dispatch = useAppDispatch();
-    const [floors, setFloors] = useState<{floorNumber: number, file: File | null}[]>([]);
+
+    const duplicateIndexes = useMemo(() => {
+        const counts = new Map<number, number>();
+        floors.forEach(f => counts.set(f.floorNumber, (counts.get(f.floorNumber) || 0) + 1));
+
+        const duplicates = new Set<number>();
+        floors.forEach((f, i) => {
+            if ((counts.get(f.floorNumber) || 0) > 1) duplicates.add(i);
+        });
+        return duplicates;
+    }, [floors]);
+
+    const hasDuplicates = duplicateIndexes.size > 0;
 
     const addFloorRow = () => {
-        setFloors([...floors, { floorNumber: floors.length + 1, file: null }]);
+        const usedNumbers = new Set(floors.map(f => f.floorNumber));
+        let nextNumber = floors.length + 1;
+        while (usedNumbers.has(nextNumber)) {
+            nextNumber += 1;
+        }
+        onFloorsChange([...floors, { floorNumber: nextNumber, file: null }]);
     };
 
     const removeFloorRow = (index: number) => {
-        setFloors(floors.filter((_, i) => i !== index));
+        onFloorsChange(floors.filter((_, i) => i !== index));
     };
 
-    const handleSave = async () => {
-        for (const f of floors) {
-            if (f.file) {
-                await dispatch(uploadFloorPlan({
-                    buildingId,
-                    floorNumber: f.floorNumber,
-                    file: f.file
-                })).unwrap();
-            }
-        }
-        onFinish();
+    const updateFloorNumber = (index: number, value: number) => {
+        const updated = [...floors];
+        updated[index] = { ...updated[index], floorNumber: value };
+        onFloorsChange(updated);
+    };
+
+    const updateFloorFile = (index: number, file: File) => {
+        const updated = [...floors];
+        updated[index] = { ...updated[index], file };
+        onFloorsChange(updated);
     };
 
     return (
@@ -71,45 +91,53 @@ export default function AddBuildingFloorsModal({
             </DialogTitle>
 
             <DialogContent>
-                {floors.map((f, i) => (
-                    <Box key={i} sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
-                        <TextField
-                            label="Этаж"
-                            size="small"
-                            type="number"
-                            value={f.floorNumber}
-                            onChange={(e) => {
-                                const newFloors = [...floors];
-                                newFloors[i].floorNumber = Number(e.target.value);
-                                setFloors(newFloors);
-                            }}
-                            sx={{ mt: 1, flexGrow: 1 }}
-                            slotProps={{
-                                input: { sx: { ...inputStyle, color: '#fff', bgcolor: 'rgba(255,255,255,0.03)' } },
-                                inputLabel: { sx: { color: 'rgba(255,255,255,0.5)' } }
-                            }}
-                        />
-                        <Button
-                            component="label"
-                            variant="outlined"
-                            sx={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff', textTransform: 'none', mt: 1 }}
-                        >
-                            {f.file ? f.file.name : "Выбрать файл"}
-                            <input type="file" hidden onChange={(e) => {
-                                const newFloors = [...floors];
-                                newFloors[i].file = e.target.files![0];
-                                setFloors(newFloors);
-                            }} />
-                        </Button>
+                {floors.map((f, i) => {
+                    const isDuplicate = duplicateIndexes.has(i);
+                    return (
+                        <Box key={i} sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
+                            <TextField
+                                label="Этаж"
+                                size="small"
+                                type="number"
+                                value={f.floorNumber}
+                                onChange={(e) => updateFloorNumber(i, Number(e.target.value))}
+                                error={isDuplicate}
+                                helperText={isDuplicate ? "Этаж уже добавлен" : ""}
+                                sx={{ mt: 1, flexGrow: 1 }}
+                                slotProps={{
+                                    input: {
+                                        sx: {
+                                            ...inputStyle,
+                                            color: '#fff',
+                                            bgcolor: isDuplicate ? 'rgba(244, 67, 54, 0.08)' : 'rgba(255,255,255,0.03)',
+                                            '& .MuiOutlinedInput-notchedOutline': isDuplicate
+                                                ? { borderColor: '#f44336 !important' }
+                                                : undefined,
+                                        }
+                                    },
+                                    inputLabel: { sx: { color: isDuplicate ? '#f44336' : 'rgba(255,255,255,0.5)' } }
+                                }}
+                            />
+                            <Button
+                                component="label"
+                                variant="outlined"
+                                sx={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff', textTransform: 'none', mt: 1 }}
+                            >
+                                {f.file ? f.file.name : "Выбрать файл"}
+                                <input type="file" hidden onChange={(e) => {
+                                    if (e.target.files?.[0]) updateFloorFile(i, e.target.files[0]);
+                                }} />
+                            </Button>
 
-                        <IconButton
-                            onClick={() => removeFloorRow(i)}
-                            sx={{ color: 'rgba(255,255,255,0.5)', mt: 1, '&:hover': { color: '#f44336' } }}
-                        >
-                            <DeleteOutlined />
-                        </IconButton>
-                    </Box>
-                ))}
+                            <IconButton
+                                onClick={() => removeFloorRow(i)}
+                                sx={{ color: 'rgba(255,255,255,0.5)', mt: 1, '&:hover': { color: '#f44336' } }}
+                            >
+                                <DeleteOutlined />
+                            </IconButton>
+                        </Box>
+                    );
+                })}
 
                 <Button
                     onClick={addFloorRow}
@@ -117,16 +145,32 @@ export default function AddBuildingFloorsModal({
                 >
                     + Добавить этаж
                 </Button>
+
+                {hasDuplicates && (
+                    <Typography sx={{ mt: 1.5, fontSize: '13px', color: '#f44336' }}>
+                        Номера этажей не должны повторяться — исправьте выделенные поля
+                    </Typography>
+                )}
             </DialogContent>
 
             <DialogActions sx={{ p: 2, gap: 1 }}>
-                <Button onClick={onBack} sx={{ color: 'rgba(255,255,255,0.5)' }}>Назад</Button>
+                <Button onClick={onBack} disabled={isSaving} sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                    Назад
+                </Button>
                 <Button
-                    onClick={handleSave}
+                    onClick={onSave}
+                    disabled={isSaving || hasDuplicates}
                     variant="contained"
-                    sx={{ bgcolor: '#2F80ED', color: '#fff' }}
+                    sx={{
+                        bgcolor: '#2F80ED',
+                        color: '#fff',
+                        '&.Mui-disabled': {
+                            bgcolor: 'rgba(47,128,237,0.15)',
+                            color: 'rgba(255,255,255,0.4)'
+                        }
+                    }}
                 >
-                    Сохранить
+                    {isSaving ? "Сохранение..." : "Сохранить"}
                 </Button>
             </DialogActions>
         </Dialog>

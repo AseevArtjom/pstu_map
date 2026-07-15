@@ -3,6 +3,7 @@ import type { Room } from "@shared/types/Room.ts";
 import http from "../http.ts";
 import type {RoomUpdateDto} from "../types/room/RoomUpdateDto.ts";
 import type {RoomCreateDto} from "../types/room/RoomCreateDto.ts";
+import {deleteNode} from "./nodeSlice.ts";
 
 interface RoomState {
     rooms: Room[];
@@ -77,6 +78,14 @@ const roomSlice = createSlice({
             })
             .addCase(deleteRoom.fulfilled, (state, action) => {
                 state.rooms = state.rooms.filter(r => r.id !== action.payload);
+            })
+            .addCase(deleteNode.fulfilled, (state, action) => {
+                const deletedNodeId = action.payload;
+                state.rooms.forEach((room) => {
+                    if (room.node?.id === deletedNodeId) {
+                        room.node = null;
+                    }
+                });
             });
     },
 });

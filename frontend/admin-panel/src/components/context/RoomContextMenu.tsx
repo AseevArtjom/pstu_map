@@ -43,7 +43,13 @@ export default function RoomContextMenu({
                         <ListItemIcon><EditIcon fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.7)' }} /></ListItemIcon>
                         <ListItemText primary="Изменить" />
                     </MenuItem>
-                    <MenuItem onClick={() => { onDeleteRoom(targetId); onClose(); }} sx={{ color: '#ff4d4f' }}>
+                    <MenuItem
+                        onClick={() => {
+                            onClose();
+                            onDeleteRoom(targetId);
+                        }}
+                        sx={{ color: '#ff4d4f' }}
+                    >
                         <ListItemIcon><DeleteIcon fontSize="small" sx={{ color: '#ff4d4f' }} /></ListItemIcon>
                         <ListItemText primary="Удалить" />
                     </MenuItem>

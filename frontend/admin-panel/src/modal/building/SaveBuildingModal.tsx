@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "../../store/store.ts";
 import {deleteIcon, fetchIcons, uploadIcon} from "../../store/iconSlice.ts";
 import { BASE_URL } from "../../http.ts";
 import IconItemContent from "../../components/IconItemContent.tsx";
+import {useConfirm} from "material-ui-confirm";
 
 interface SaveBuildingModalProps {
     open: boolean;
@@ -31,6 +32,8 @@ const inputStyle = {
 
 export default function SaveBuildingModal({ open, onClose, onNext,initialData }: SaveBuildingModalProps) {
     const dispatch = useAppDispatch();
+    const confirm = useConfirm();
+
     const { icons = [] } = useAppSelector((state) => state.icon || { icons: [] });
 
     const [name, setName] = useState('');
@@ -76,6 +79,21 @@ export default function SaveBuildingModal({ open, onClose, onNext,initialData }:
         }
 
         onNext(name.trim(), hexColor.toUpperCase(), finalIcon);
+    };
+
+    const handleIconDelete = async (iconIdToDelete: number, event: React.MouseEvent) => {
+        event.preventDefault();
+
+        const { confirmed } = await confirm({
+            title: 'Удалить иконку?',
+            description: 'Иконка будет удалена безвозвратно.',
+            confirmationText: 'Удалить',
+            cancellationText: 'Отмена',
+        });
+
+        if (!confirmed) return;
+
+        await dispatch(deleteIcon(iconIdToDelete)).unwrap();
     };
 
     const handleColorChangeWithDelay = (newColor: string) => {
@@ -172,7 +190,9 @@ export default function SaveBuildingModal({ open, onClose, onNext,initialData }:
                             <MenuItem
                                 key={icon.id}
                                 value={icon.filePath}
-                                onContextMenu={(e) => { e.preventDefault(); dispatch(deleteIcon(icon.id)); }}
+                                onContextMenu={(e) => {
+                                    handleIconDelete(icon.id,e);
+                                }}
                                 sx={{
                                     width: 48, height: 48, justifyContent: 'center', m: 0.5,
                                     borderRadius: '8px', bgcolor: selectedIcon === icon.filePath ? 'rgba(47, 128, 237, 0.2)' : 'transparent',
