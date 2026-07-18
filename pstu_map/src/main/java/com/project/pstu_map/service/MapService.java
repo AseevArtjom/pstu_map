@@ -1,6 +1,10 @@
 package com.project.pstu_map.service;
 
-import com.project.pstu_map.dto.PathResponseDto;
+import com.project.pstu_map.dto.PathStepDto;
+import com.project.pstu_map.dto.edge.EdgeDto;
+import com.project.pstu_map.dto.node.NodeDto;
+import com.project.pstu_map.dto.response.BuildingGraphResponseDto;
+import com.project.pstu_map.dto.response.PathResponseDto;
 import com.project.pstu_map.models.Edge;
 import com.project.pstu_map.models.Node;
 import com.project.pstu_map.models.Room;
@@ -21,6 +25,16 @@ public class MapService {
     private final EdgeRepository edgeRepository;
     private final RoomRepository roomRepository;
 
+    public BuildingGraphResponseDto getBuildingGraph(Integer buildingId) {
+        List<Node> nodes = nodeRepository.findByBuildingId(buildingId);
+        List<Edge> edges = edgeRepository.findAllByBuildingIdEitherSide(buildingId);
+
+        List<NodeDto> nodeDtos = nodes.stream().map(this::toNodeDto).toList();
+        List<EdgeDto> edgeDtos = edges.stream().map(this::toEdgeDto).toList();
+
+        return new BuildingGraphResponseDto(nodeDtos, edgeDtos);
+    }
+
     public PathResponseDto calculatePath(String fromRoomId, String toRoomId) {
         Room startRoom = roomRepository.findById(fromRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("Комната старта не найдена: " + fromRoomId));
@@ -30,14 +44,22 @@ public class MapService {
         Node startNode = startRoom.getNode();
         Node endNode = endRoom.getNode();
 
-        if (startNode.getId().equals(endNode.getId())) {
-            return new PathResponseDto(List.of(startNode), 0.0);
+        if (startNode == null) {
+            throw new IllegalStateException("У комнаты \"" + startRoom.getName() + "\" не привязан узел навигации");
+        }
+        if (endNode == null) {
+            throw new IllegalStateException("У комнаты \"" + endRoom.getName() + "\" не привязан узел навигации");
         }
 
-        Integer buildingId = startNode.getBuilding().getId();
+        if (startNode.getId().equals(endNode.getId())) {
+            NodeDto onlyNode = toNodeDto(startNode);
+            return new PathResponseDto(List.of(onlyNode), List.of(), 0.0);
+        }
 
-        List<Node> allNodes = nodeRepository.findByBuildingId(buildingId);
-        List<Edge> allEdges = edgeRepository.findByFromNodeBuildingId(buildingId);
+        // Ищем по всем узлам/рёбрам (а не только внутри одного здания) —
+        // так путь может проходить через уличные/межкорпусные узлы, если они есть.
+        List<Node> allNodes = nodeRepository.findAll();
+        List<Edge> allEdges = edgeRepository.findAll();
 
         Map<String, List<Edge>> adjacencyList = new HashMap<>();
         for (Node node : allNodes) {
@@ -50,12 +72,12 @@ public class MapService {
             reverseEdge.setFromNode(edge.getToNode());
             reverseEdge.setToNode(edge.getFromNode());
             reverseEdge.setWeight(edge.getWeight());
-            reverseEdge.setType(edge.getType()); // Не забываем переносить тип связи
+            reverseEdge.setType(edge.getType());
             adjacencyList.get(edge.getToNode().getId()).add(reverseEdge);
         }
 
         Map<String, Double> distances = new HashMap<>();
-        Map<String, String> predecessors = new HashMap<>();
+        Map<String, Edge> predecessorEdges = new HashMap<>(); // ребро, по которому пришли в узел
         PriorityQueue<NodeDistance> queue = new PriorityQueue<>(Comparator.comparingDouble(nd -> nd.distance));
 
         for (Node node : allNodes) {
@@ -79,7 +101,7 @@ public class MapService {
 
                 if (newDist < distances.get(neighborId)) {
                     distances.put(neighborId, newDist);
-                    predecessors.put(neighborId, current.nodeId);
+                    predecessorEdges.put(neighborId, edge);
                     queue.add(new NodeDistance(neighborId, newDist));
                 }
             }
@@ -89,18 +111,58 @@ public class MapService {
             throw new RuntimeException("Маршрут между указанными аудиториями невозможен");
         }
 
-        LinkedList<Node> path = new LinkedList<>();
-        String step = endNode.getId();
+        // Восстанавливаем путь по рёбрам (не только узлам), чтобы знать тип каждого перехода
+        LinkedList<Node> pathNodes = new LinkedList<>();
+        LinkedList<PathStepDto> steps = new LinkedList<>();
 
+        String step = endNode.getId();
         Map<String, Node> nodeMap = new HashMap<>();
         allNodes.forEach(n -> nodeMap.put(n.getId(), n));
 
-        while (step != null) {
-            path.addFirst(nodeMap.get(step));
-            step = predecessors.get(step);
+        pathNodes.addFirst(nodeMap.get(step));
+
+        while (predecessorEdges.containsKey(step)) {
+            Edge edge = predecessorEdges.get(step);
+            Node fromNode = edge.getFromNode();
+
+            steps.addFirst(new PathStepDto(
+                    fromNode.getId(),
+                    edge.getToNode().getId(),
+                    fromNode.getFloor(),
+                    edge.getToNode().getFloor(),
+                    edge.getType(),
+                    edge.getWeight()
+            ));
+
+            pathNodes.addFirst(nodeMap.get(fromNode.getId()));
+            step = fromNode.getId();
         }
 
-        return new PathResponseDto(path, distances.get(endNode.getId()));
+        List<NodeDto> nodeDtos = pathNodes.stream().map(this::toNodeDto).toList();
+
+        return new PathResponseDto(nodeDtos, steps, distances.get(endNode.getId()));
+    }
+
+    private NodeDto toNodeDto(Node node) {
+        NodeDto dto = new NodeDto();
+        dto.setId(node.getId());
+        dto.setFloor(node.getFloor());
+        dto.setX(node.getX());
+        dto.setY(node.getY());
+        if (node.getBuilding() != null) {
+            dto.setBuildingId(node.getBuilding().getId());
+        }
+        return dto;
+    }
+
+    private EdgeDto toEdgeDto(Edge edge) {
+        EdgeDto dto = new EdgeDto();
+        dto.setId(edge.getId());
+        dto.setFrom(edge.getFromNode().getId());
+        dto.setTo(edge.getToNode().getId());
+        dto.setWeight(edge.getWeight());
+        dto.setType(edge.getType());
+        return dto;
     }
 
     private static class NodeDistance {

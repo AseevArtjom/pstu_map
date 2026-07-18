@@ -26,6 +26,11 @@ import AddBuildingStep from "../modal/building/AddBuildingStep.tsx";
 import FloorPage from "./FloorPage.tsx";
 import MapPolygon from "../components/MapPolygon.tsx";
 
+export interface InterFloorLinkDraft {
+    fromNodeId: string;
+    fromFloor: number;
+}
+
 export default function DashboardPage() {
     const { logout, checkHasRole } = useAuthService();
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -36,6 +41,8 @@ export default function DashboardPage() {
 
     const [selectedBuilding, setSelectedBuilding] = useState<number | null>(null);
     const [hoveredBuilding, setHoveredBuilding] = useState<number | null>(null);
+
+    const [interFloorLink, setInterFloorLink] = useState<InterFloorLinkDraft | null>(null);
 
     const buildingConstructor = usePolygonConstructor<number>(
         "data-building-id",
@@ -197,6 +204,8 @@ export default function DashboardPage() {
                         searchQuery={searchQuery}
                         hoveredRoomId={hoveredRoomId}
                         setHoveredRoomId={setHoveredRoomId}
+                        interFloorLink={interFloorLink}
+                        setInterFloorLink={setInterFloorLink}
                     />
                 )}
 

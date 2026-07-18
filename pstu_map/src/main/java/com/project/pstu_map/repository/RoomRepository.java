@@ -10,4 +10,6 @@ import java.util.List;
 public interface RoomRepository extends JpaRepository<Room,String>
 {
     List<Room> findByBuildingId(Integer buildingId);
+    List<Room> findByBuildingIdAndFloor(Integer buildingId, int floor);
+    void deleteByBuildingIdAndFloor(Integer buildingId, int floor);
 }

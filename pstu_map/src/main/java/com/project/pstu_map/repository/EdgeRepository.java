@@ -1,8 +1,10 @@
 package com.project.pstu_map.repository;
 
 import com.project.pstu_map.models.Edge;
+import com.project.pstu_map.models.Node;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,4 +23,8 @@ public interface EdgeRepository extends JpaRepository<Edge, Long> {
     List<Edge> findAllByBuildingIdEitherSide(@Param("buildingId") Integer buildingId);
 
     Optional<Edge> findByFromNodeIdAndToNodeId(String fromNodeId, String toNodeId);
+
+    @Modifying
+    @Query("DELETE FROM Edge e WHERE e.fromNode IN :nodes OR e.toNode IN :nodes")
+    void deleteByNodeIn(@Param("nodes") List<Node> nodes);
 }

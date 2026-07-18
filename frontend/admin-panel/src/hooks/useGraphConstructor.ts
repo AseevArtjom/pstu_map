@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 export interface GraphPoint {
     id: string;
@@ -6,10 +6,20 @@ export interface GraphPoint {
     y: number;
 }
 
+const snapToAxis = (reference: { x: number; y: number }, point: { x: number; y: number }) => {
+    const dx = Math.abs(point.x - reference.x);
+    const dy = Math.abs(point.y - reference.y);
+    return dx >= dy
+        ? { x: point.x, y: reference.y }
+        : { x: reference.x, y: point.y };
+};
+
 export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElement | null>) {
     const [isGraphMode, setIsGraphMode] = useState(false);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+
+    const lastPlacedPosRef = useRef<{ x: number; y: number } | null>(null);
 
     const getSVGCoordinates = useCallback((clientX: number, clientY: number) => {
         if (!mapContainerRef.current) return { x: 0, y: 0 };
@@ -34,7 +44,12 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
         const target = event.target as HTMLElement;
         if (target.closest('[data-node-id]')) return;
 
-        const pos = getSVGCoordinates(event.clientX, event.clientY);
+        const rawPos = getSVGCoordinates(event.clientX, event.clientY);
+        const pos = event.shiftKey && lastPlacedPosRef.current
+            ? snapToAxis(lastPlacedPosRef.current, rawPos)
+            : rawPos;
+
+        lastPlacedPosRef.current = pos;
         onCreateNode(pos.x, pos.y);
     }, [isGraphMode, getSVGCoordinates]);
 
@@ -54,9 +69,17 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
         }
     }, [isGraphMode, selectedNodeId]);
 
-    const handleNodeDrag = useCallback((event: React.MouseEvent) => {
+    const handleNodeDrag = useCallback((
+        event: React.MouseEvent,
+        referencePoint?: { x: number; y: number }
+    ) => {
         if (!draggedNodeId) return null;
-        return getSVGCoordinates(event.clientX, event.clientY);
+        const rawPos = getSVGCoordinates(event.clientX, event.clientY);
+
+        if (event.shiftKey && referencePoint) {
+            return snapToAxis(referencePoint, rawPos);
+        }
+        return rawPos;
     }, [draggedNodeId, getSVGCoordinates]);
 
     return {

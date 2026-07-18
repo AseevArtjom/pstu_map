@@ -1,5 +1,17 @@
-import {useEffect, useMemo, useState} from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+import {
+    Box,
+    Button,
+    Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    FormControl,
+    RadioGroup,
+    FormControlLabel,
+    Radio
+} from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
 import InteractiveMap from "../components/InteractiveMap.tsx";
 import RoomContextMenu from "../components/context/RoomContextMenu.tsx";
@@ -15,6 +27,10 @@ import { useGraphConstructor } from "../hooks/useGraphConstructor.ts";
 import GraphLayer from "../components/layer/GraphLayer.tsx";
 import { createEdge, deleteEdge, fetchEdgesByBuilding } from "../store/edgeSlice.ts";
 import { createNode, deleteNode, fetchNodesByBuilding, updateNode } from "../store/nodeSlice.ts";
+import NodeContextMenu from "../components/context/NodeContextMenu.tsx";
+import type {InterFloorLinkDraft} from "./DashboardPage.tsx";
+import InterFloorMarker from "../components/InterFloorMarker.tsx";
+import RouteOverlay from "../components/RouteOverlay.tsx";
 
 interface FloorPageProps {
     bgMapImage: string;
@@ -23,6 +39,8 @@ interface FloorPageProps {
     searchQuery: string;
     hoveredRoomId: string | null;
     setHoveredRoomId: (id: string | null) => void;
+    interFloorLink: InterFloorLinkDraft | null;
+    setInterFloorLink: (link: InterFloorLinkDraft | null) => void;
 }
 
 export default function FloorPage({
@@ -31,7 +49,9 @@ export default function FloorPage({
                                       buildingId,
                                       searchQuery,
                                       hoveredRoomId,
-                                      setHoveredRoomId
+                                      setHoveredRoomId,
+                                      interFloorLink,
+                                      setInterFloorLink
                                   }: FloorPageProps) {
     const dispatch = useAppDispatch();
     const confirm = useConfirm();
@@ -48,10 +68,20 @@ export default function FloorPage({
 
     const [roomDraft, setRoomDraft] = useState<any | null>(null);
     const [isSelectingNodeForRoom, setIsSelectingNodeForRoom] = useState(false);
+
+    const [pendingTargetNodeId, setPendingTargetNodeId] = useState<string | null>(null);
+    const [edgeType, setEdgeType] = useState<"stairs" | "elevator">("stairs");
+
     const floorNodes = nodes.filter(n => n.floor === selectedFloor);
     const floorEdges = edges.filter(e => e.fromNode.floor === selectedFloor && e.toNode.floor === selectedFloor);
 
-    const isMapInteractionBlocked = roomConstructor.isSaveModalOpen || isSelectingNodeForRoom;
+    const isMapInteractionBlocked = roomConstructor.isSaveModalOpen || isSelectingNodeForRoom || !!interFloorLink;
+
+    const [nodeContextMenu, setNodeContextMenu] = useState<{
+        mouseX: number;
+        mouseY: number;
+        nodeId: string | null;
+    }>({ mouseX: 0, mouseY: 0, nodeId: null });
 
     const nodeToRoomMap = useMemo(() => {
         const map: Record<string, { id: string; name: string }> = {};
@@ -74,6 +104,64 @@ export default function FloorPage({
             };
         });
     }, [floorEdges, nodes]);
+
+    const liveInterFloorEdges = useMemo(() => {
+        return edges
+            .filter(e => e.fromNode.floor !== e.toNode.floor)
+            .map(edge => {
+                const freshFromNode = nodes.find(n => n.id === edge.fromNode.id);
+                const freshToNode = nodes.find(n => n.id === edge.toNode.id);
+                return {
+                    ...edge,
+                    fromNode: freshFromNode || edge.fromNode,
+                    toNode: freshToNode || edge.toNode
+                };
+            });
+    }, [edges, nodes]);
+
+    const interFloorMarkers = useMemo(() => {
+        const grouped = new Map<string, { x: number; y: number; type: string; remoteFloors: number[] }>();
+
+        liveInterFloorEdges.forEach(e => {
+            const isFromLocal = e.fromNode.floor === selectedFloor;
+            const isToLocal = e.toNode.floor === selectedFloor;
+            if (!isFromLocal && !isToLocal) return;
+
+            const localNode = isFromLocal ? e.fromNode : e.toNode;
+            const remoteNode = isFromLocal ? e.toNode : e.fromNode;
+
+            const existing = grouped.get(localNode.id);
+            if (existing) {
+                existing.remoteFloors.push(remoteNode.floor);
+            } else {
+                grouped.set(localNode.id, {
+                    x: localNode.x,
+                    y: localNode.y,
+                    type: e.type,
+                    remoteFloors: [remoteNode.floor],
+                });
+            }
+        });
+
+        return Array.from(grouped.entries()).map(([nodeId, data]) => ({ nodeId, ...data }));
+    }, [liveInterFloorEdges, selectedFloor]);
+
+    const interFloorNodeTypes = useMemo(() => {
+        const map: Record<string, { type: string; remoteFloor: number }[]> = {};
+
+        liveInterFloorEdges.forEach(e => {
+            if (e.fromNode.floor === selectedFloor) {
+                if (!map[e.fromNode.id]) map[e.fromNode.id] = [];
+                map[e.fromNode.id].push({ type: e.type, remoteFloor: e.toNode.floor });
+            }
+            if (e.toNode.floor === selectedFloor) {
+                if (!map[e.toNode.id]) map[e.toNode.id] = [];
+                map[e.toNode.id].push({ type: e.type, remoteFloor: e.fromNode.floor });
+            }
+        });
+
+        return map;
+    }, [liveInterFloorEdges, selectedFloor]);
 
     const editingRoom = roomConstructor.isEditing && roomConstructor.editingId
         ? rooms.find(r => r.id === roomConstructor.editingId)
@@ -122,6 +210,36 @@ export default function FloorPage({
     const cleanDrafts = () => {
         setRoomDraft(null);
         setIsSelectingNodeForRoom(false);
+    };
+
+    const handleSelectTargetNode = (targetId: string) => {
+        if (!interFloorLink) return;
+
+        if (targetId === interFloorLink.fromNodeId) {
+            confirm({
+                title: "Ошибка связи",
+                description: "Нельзя связать узел сам с собой!",
+                confirmationText: "ОК",
+                hideCancelButton: true
+            });
+            return;
+        }
+
+        setPendingTargetNodeId(targetId);
+    };
+
+    const handleConfirmEdgeCreation = () => {
+        if (interFloorLink && pendingTargetNodeId) {
+            dispatch(createEdge({
+                fromNodeId: interFloorLink.fromNodeId,
+                toNodeId: pendingTargetNodeId,
+                weight: edgeType === "elevator" ? 15 : 25,
+                type: edgeType
+            }));
+
+            setInterFloorLink(null);
+            setPendingTargetNodeId(null);
+        }
     };
 
     const handleModalSave = (formData: {
@@ -199,6 +317,15 @@ export default function FloorPage({
                     return;
                 }
 
+                if (interFloorLink) {
+                    e.stopPropagation();
+                    graphConstructor.handleMapDoubleClick(e, async (x, y) => {
+                        const newNode = await dispatch(createNode({ floor: selectedFloor, x, y, buildingId })).unwrap();
+                        handleSelectTargetNode(newNode.id);
+                    });
+                    return;
+                }
+
                 roomConstructor.handleMapDoubleClick(e);
                 graphConstructor.handleMapDoubleClick(e, (x, y) => {
                     dispatch(createNode({ floor: selectedFloor, x, y, buildingId }));
@@ -222,13 +349,23 @@ export default function FloorPage({
                 }
                 graphConstructor.setDraggedNodeId(null);
             }}
-            sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}
+            sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}
         >
             {isSelectingNodeForRoom && (
                 <Box sx={{ position: 'absolute', top: 60, left: '50%', transform: 'translateX(-50%)', zIndex: 10, bgcolor: '#2F80ED', color: '#fff', px: 3, py: 1, borderRadius: '20px', boxShadow: 3, fontWeight: 500 }}>
                     Режим привязки: выберите существующий узел
                 </Box>
             )}
+
+            {interFloorLink && (
+                <Box sx={{ position: 'absolute', top: 60, left: '50%', transform: 'translateX(-50%)', zIndex: 10, bgcolor: '#4CAF50', color: '#fff', px: 3, py: 1, borderRadius: '20px', boxShadow: 3, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <span>Связь с этажа {interFloorLink.fromFloor}: перейдите на нужный этаж и выберите/создайте узел</span>
+                    <Button size="small" variant="contained" color="error" onClick={() => setInterFloorLink(null)}>
+                        Отмена
+                    </Button>
+                </Box>
+            )}
+
             <Button onClick={() => graphConstructor.setIsGraphMode(v => !v)}>
                 {graphConstructor.isGraphMode ? "Завершить разметку путей" : "Разметить пути"}
             </Button>
@@ -271,7 +408,7 @@ export default function FloorPage({
                     />
                 )}
 
-                {(graphConstructor.isGraphMode || isSelectingNodeForRoom) && (
+                {(graphConstructor.isGraphMode || isSelectingNodeForRoom || !!interFloorLink) && (
                     <GraphLayer
                         nodes={floorNodes}
                         edges={liveEdges}
@@ -279,7 +416,10 @@ export default function FloorPage({
                         nodeToRoomMap={nodeToRoomMap}
                         currentEditingRoomId={roomConstructor.editingId}
                         isSelectingNodeForRoom={isSelectingNodeForRoom}
+                        interFloorNodeTypes={interFloorNodeTypes}
+                        currentFloor={selectedFloor}
                         onNodeMouseDown={(id, e) => {
+                            if (!!interFloorLink) return;
                             const occupyingRoom = nodeToRoomMap[id];
                             if (isSelectingNodeForRoom && occupyingRoom && occupyingRoom.id !== roomConstructor.editingId) {
                                 return;
@@ -288,6 +428,11 @@ export default function FloorPage({
                             graphConstructor.setDraggedNodeId(id);
                         }}
                         onNodeClick={(id) => {
+                            if (interFloorLink) {
+                                handleSelectTargetNode(id);
+                                return;
+                            }
+
                             if (isSelectingNodeForRoom) {
                                 const occupyingRoom = nodeToRoomMap[id];
 
@@ -306,6 +451,7 @@ export default function FloorPage({
                                 roomConstructor.setIsSaveModalOpen(true);
                                 return;
                             }
+
                             graphConstructor.handleNodeClick(id, (fromId, toId) => {
                                 const alreadyExists = floorEdges.some(edge =>
                                     (edge.fromNode.id === fromId && edge.toNode.id === toId) ||
@@ -317,16 +463,13 @@ export default function FloorPage({
                                 dispatch(createEdge({ fromNodeId: fromId, toNodeId: toId, weight: 1, type: "corridor" }));
                             });
                         }}
-                        onNodeContextMenu={(id) => {
-                            confirm({
-                                title: 'Удалить узел?',
-                                description: 'Вы уверены, что хотите полностью удалить этот узел и все связанные пути?',
-                                confirmationText: 'Удалить',
-                                cancellationText: 'Отмена',
-                            }).then(({ confirmed }) => {
-                                if (confirmed) {
-                                    dispatch(deleteNode(id));
-                                }
+                        onNodeContextMenu={(id, e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setNodeContextMenu({
+                                mouseX: e.clientX,
+                                mouseY: e.clientY,
+                                nodeId: id,
                             });
                         }}
                         onEdgeContextMenu={(edgeId) => {
@@ -343,6 +486,21 @@ export default function FloorPage({
                         }}
                     />
                 )}
+
+                {!graphConstructor.isGraphMode && !isSelectingNodeForRoom && !interFloorLink && (
+                    interFloorMarkers.map((marker) => (
+                        <InterFloorMarker
+                            key={marker.nodeId}
+                            x={marker.x}
+                            y={marker.y}
+                            type={marker.type}
+                            remoteFloors={marker.remoteFloors}
+                            currentFloor={selectedFloor}
+                        />
+                    ))
+                )}
+
+                <RouteOverlay selectedFloor={selectedFloor}/>
             </InteractiveMap>
 
             <RoomContextMenu
@@ -400,6 +558,82 @@ export default function FloorPage({
                 availableIcons={icons}
                 initialData={modalInitialData}
             />
+
+            <NodeContextMenu
+                mouseX={nodeContextMenu.mouseX}
+                mouseY={nodeContextMenu.mouseY}
+                onClose={() => setNodeContextMenu({ mouseX: 0, mouseY: 0, nodeId: null })}
+                onStartInterFloorLink={() => {
+                    if (nodeContextMenu.nodeId) {
+                        setInterFloorLink({
+                            fromNodeId: nodeContextMenu.nodeId,
+                            fromFloor: selectedFloor
+                        });
+                    }
+                }}
+                onDelete={() => {
+                    if (nodeContextMenu.nodeId) {
+                        confirm({
+                            title: 'Удалить узел?',
+                            description: 'Вы уверены, что хотите полностью удалить этот узел и все связанные пути?',
+                            confirmationText: 'Удалить',
+                            cancellationText: 'Отмена',
+                        }).then(({ confirmed }) => {
+                            if (confirmed && nodeContextMenu.nodeId) {
+                                dispatch(deleteNode(nodeContextMenu.nodeId));
+                            }
+                        });
+                    }
+                }}
+            />
+
+            <Dialog
+                open={!!pendingTargetNodeId}
+                onClose={() => setPendingTargetNodeId(null)}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            backgroundColor: "#1C1E22",
+                            color: "#E4E6EB",
+                            border: "1px solid rgba(255, 255, 255, 0.08)"
+                        }
+                    }
+                }}
+            >
+                <DialogTitle sx={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                    Тип межэтажного перехода
+                </DialogTitle>
+                <DialogContent sx={{ py: 3 }}>
+                    <Typography variant="body2" sx={{ color: "#90949C", mb: 2 }}>
+                        Выберите, каким образом связаны эти узлы на разных этажах:
+                    </Typography>
+                    <FormControl component="fieldset">
+                        <RadioGroup
+                            value={edgeType}
+                            onChange={(e) => setEdgeType(e.target.value as "stairs" | "elevator")}
+                        >
+                            <FormControlLabel
+                                value="stairs"
+                                control={<Radio sx={{ color: '#2F80ED', '&.Mui-checked': { color: '#2F80ED' } }} />}
+                                label="Лестница"
+                            />
+                            <FormControlLabel
+                                value="elevator"
+                                control={<Radio sx={{ color: '#2F80ED', '&.Mui-checked': { color: '#2F80ED' } }} />}
+                                label="Лифт"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions sx={{ p: 2, borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                    <Button onClick={() => setPendingTargetNodeId(null)} sx={{ color: '#90949C' }}>
+                        Отмена
+                    </Button>
+                    <Button onClick={handleConfirmEdgeCreation} variant="contained" sx={{ bgcolor: '#2F80ED', '&:hover': { bgcolor: '#1b60b8' } }}>
+                        Создать связь
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

@@ -3,14 +3,19 @@ package com.project.pstu_map.service;
 import com.project.pstu_map.dto.floor.FloorPlanDto;
 import com.project.pstu_map.models.Building;
 import com.project.pstu_map.models.FloorPlan;
+import com.project.pstu_map.models.Node;
 import com.project.pstu_map.repository.BuildingRepository;
+import com.project.pstu_map.repository.EdgeRepository;
 import com.project.pstu_map.repository.FloorPlanRepository;
+import com.project.pstu_map.repository.NodeRepository;
+import com.project.pstu_map.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,9 @@ public class FloorPlanService {
     private final FloorPlanRepository floorPlanRepository;
     private final FileService fileService;
     private final BuildingRepository buildingRepository;
+    private final RoomRepository roomRepository;
+    private final NodeRepository nodeRepository;
+    private final EdgeRepository edgeRepository;
 
     @Transactional(readOnly = true)
     public java.util.List<FloorPlanDto> findAllFloorPlans() {
@@ -66,6 +74,29 @@ public class FloorPlanService {
         return floorPlanRepository.findByBuildingId(buildingId).stream()
                 .map(this::convertToDTO)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteFloorPlan(Integer buildingId, Integer floorPlanId) {
+        FloorPlan floorPlan = floorPlanRepository.findById(floorPlanId)
+                .orElseThrow(() -> new IllegalArgumentException("Этаж не найден: " + floorPlanId));
+
+        if (!floorPlan.getBuilding().getId().equals(buildingId)) {
+            throw new IllegalArgumentException("Этаж не принадлежит указанному зданию");
+        }
+
+        int floorNumber = floorPlan.getFloorNumber();
+        roomRepository.deleteByBuildingIdAndFloor(buildingId, floorNumber);
+
+        List<Node> floorNodes = nodeRepository.findByBuildingIdAndFloor(buildingId, floorNumber);
+        if (!floorNodes.isEmpty()) {
+            edgeRepository.deleteByNodeIn(floorNodes);
+            nodeRepository.deleteAll(floorNodes);
+        }
+        if (floorPlan.getImagePath() != null) {
+            fileService.deleteFile(floorPlan.getImagePath());
+        }
+        floorPlanRepository.delete(floorPlan);
     }
 
     public FloorPlanDto convertToDTO(FloorPlan floorPlan) {

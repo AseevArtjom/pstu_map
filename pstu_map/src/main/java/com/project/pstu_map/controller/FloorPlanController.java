@@ -29,11 +29,8 @@ public class FloorPlanController {
         try {
             String prefix = "b" + buildingId + "_f" + floorNumber;
             String imagePath = fileService.saveFile(file, FileService.FileType.FLOOR_PLAN, prefix);
-
             FloorPlanDto updatedDto = floorPlanService.saveOrUpdateFloorPlan(buildingId, floorNumber, imagePath);
-
             return ResponseEntity.ok(updatedDto);
-
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getLocalizedMessage());
         } catch (IOException e) {
@@ -45,5 +42,19 @@ public class FloorPlanController {
     @GetMapping
     public ResponseEntity<List<FloorPlanDto>> getFloorsByBuilding(@PathVariable Integer buildingId) {
         return ResponseEntity.ok(floorPlanService.findByBuildingId(buildingId));
+    }
+
+    @DeleteMapping("/{floorId}")
+    public ResponseEntity<Void> deleteFloorPlan(
+            @PathVariable Integer buildingId,
+            @PathVariable Integer floorId
+    ) {
+        floorPlanService.deleteFloorPlan(buildingId, floorId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

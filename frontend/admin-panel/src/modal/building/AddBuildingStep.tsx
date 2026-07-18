@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { useConfirm } from "material-ui-confirm";
 import { useAppDispatch } from '../../store/store.ts';
 import { createBuilding, updateBuilding } from '../../store/buildingSlice.ts';
-import { uploadFloorPlan } from '../../store/floorPlanSlice.ts';
+import {uploadFloorPlan, fetchFloorsByBuilding, deleteFloorPlan} from '../../store/floorPlanSlice.ts';
 import SaveBuildingModal from './SaveBuildingModal.tsx';
 import AddBuildingFloorsModal from './AddBuildingFloorsModal.tsx';
 
@@ -17,9 +18,12 @@ interface AddBuildingStepProps {
     } | null;
 }
 
-interface FloorDraft {
+export interface FloorDraft {
+    id?: number;
     floorNumber: number;
     file: File | null;
+    existingImagePath?: string;
+    markedForDeletion?: boolean;
 }
 
 interface BuildingDraft {
@@ -38,11 +42,13 @@ const calculateCenter = (points: {x: number, y: number}[]) => {
 
 export default function AddBuildingStep({ open, onClose, points, initialData }: AddBuildingStepProps) {
     const dispatch = useAppDispatch();
-    const [step, setStep] = useState<'info' | 'floors'>('info');
+    const confirm = useConfirm();
 
+    const [step, setStep] = useState<'info' | 'floors'>('info');
     const [buildingDraft, setBuildingDraft] = useState<BuildingDraft | null>(null);
     const [floorsDraft, setFloorsDraft] = useState<FloorDraft[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingFloors, setIsLoadingFloors] = useState(false);
 
     const wasOpen = useRef(false);
 
@@ -59,8 +65,24 @@ export default function AddBuildingStep({ open, onClose, points, initialData }: 
         wasOpen.current = open;
     }, [open, initialData]);
 
-    const handleInfoNext = (name: string, hex: string, icon: string | null) => {
+    const handleInfoNext = async (name: string, hex: string, icon: string | null) => {
         setBuildingDraft({ name, hexColor: hex, icon });
+
+        if (initialData) {
+            setIsLoadingFloors(true);
+            try {
+                const existingFloors = await dispatch(fetchFloorsByBuilding(initialData.id)).unwrap();
+                setFloorsDraft(existingFloors.map(f => ({
+                    id: f.id,
+                    floorNumber: f.floorNumber,
+                    file: null,
+                    existingImagePath: f.imagePath,
+                })));
+            } finally {
+                setIsLoadingFloors(false);
+            }
+        }
+
         setStep('floors');
     };
 
@@ -98,7 +120,13 @@ export default function AddBuildingStep({ open, onClose, points, initialData }: 
             }
 
             for (const f of floorsDraft) {
-                if (f.file) {
+                if (f.markedForDeletion && f.id !== undefined) {
+                    await dispatch(deleteFloorPlan({ buildingId: resolvedBuildingId, floorId: f.id })).unwrap();
+                }
+            }
+
+            for (const f of floorsDraft) {
+                if (!f.markedForDeletion && f.file) {
                     await dispatch(uploadFloorPlan({
                         buildingId: resolvedBuildingId,
                         floorNumber: f.floorNumber,
@@ -111,6 +139,33 @@ export default function AddBuildingStep({ open, onClose, points, initialData }: 
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleRemoveFloor = async (index: number) => {
+        const floor = floorsDraft[index];
+
+        if (floor.id !== undefined && initialData) {
+            const { confirmed } = await confirm({
+                title: 'Удалить этаж?',
+                description: `Этаж ${floor.floorNumber} будет удалён вместе со всеми его комнатами, узлами навигации и связями при сохранении формы.`,
+                confirmationText: 'Удалить',
+                cancellationText: 'Отмена',
+            });
+
+            if (!confirmed) return;
+
+            setFloorsDraft(floorsDraft.map((f, i) =>
+                i === index ? { ...f, markedForDeletion: true } : f
+            ));
+            return;
+        }
+        setFloorsDraft(floorsDraft.filter((_, i) => i !== index));
+    };
+
+    const handleUndoRemoveFloor = (index: number) => {
+        setFloorsDraft(floorsDraft.map((f, i) =>
+            i === index ? { ...f, markedForDeletion: false } : f
+        ));
     };
 
     return (
@@ -134,9 +189,12 @@ export default function AddBuildingStep({ open, onClose, points, initialData }: 
                     onClose={onClose}
                     floors={floorsDraft}
                     onFloorsChange={setFloorsDraft}
+                    onRemoveFloor={handleRemoveFloor}
+                    onUndoRemoveFloor={handleUndoRemoveFloor}
                     onBack={() => setStep('info')}
                     onSave={handleFinalSave}
                     isSaving={isSaving}
+                    isLoadingFloors={isLoadingFloors}
                 />
             )}
         </>

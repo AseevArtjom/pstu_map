@@ -23,6 +23,14 @@ export const formatPoints = (points: SVGPoint[]): string => {
     return points.map(p => `${p.x},${p.y}`).join(' ');
 };
 
+const snapToAxis = (reference: SVGPoint, point: SVGPoint): SVGPoint => {
+    const dx = Math.abs(point.x - reference.x);
+    const dy = Math.abs(point.y - reference.y);
+    return dx >= dy
+        ? { x: point.x, y: reference.y }
+        : { x: reference.x, y: point.y };
+};
+
 export function usePolygonConstructor<TId extends string | number = number>(
     dataAttributeName: string,
     onSave: (polygon: string, id: TId | null) => void,
@@ -99,15 +107,31 @@ export function usePolygonConstructor<TId extends string | number = number>(
     const handleMapDoubleClick = useCallback((event: React.MouseEvent) => {
         if (!isDrawingMode) return;
         event.stopPropagation();
-        setPolygonPoints((prev) => [...prev, getSVGCoordinates(event.clientX, event.clientY)]);
+
+        setPolygonPoints((prev) => {
+            const rawPos = getSVGCoordinates(event.clientX, event.clientY);
+            const lastPoint = prev[prev.length - 1];
+            const pos = event.shiftKey && lastPoint ? snapToAxis(lastPoint, rawPos) : rawPos;
+            return [...prev, pos];
+        });
     }, [isDrawingMode, getSVGCoordinates]);
 
     const handleMapMouseMove = useCallback((event: React.MouseEvent) => {
         if (!isDrawingMode) return;
-        const pos = getSVGCoordinates(event.clientX, event.clientY);
+        const rawPos = getSVGCoordinates(event.clientX, event.clientY);
+
         if (draggedPointIndex !== null) {
-            setPolygonPoints((prev) => prev.map((p, idx) => (idx === draggedPointIndex ? pos : p)));
+            setPolygonPoints((prev) => {
+                const neighborIndex = draggedPointIndex > 0 ? draggedPointIndex - 1 : prev.length - 1;
+                const neighbor = prev.length > 1 ? prev[neighborIndex] : null;
+                const pos = event.shiftKey && neighbor && neighborIndex !== draggedPointIndex
+                    ? snapToAxis(neighbor, rawPos)
+                    : rawPos;
+                return prev.map((p, idx) => (idx === draggedPointIndex ? pos : p));
+            });
         } else if (polygonPoints.length > 0) {
+            const lastPoint = polygonPoints[polygonPoints.length - 1];
+            const pos = event.shiftKey ? snapToAxis(lastPoint, rawPos) : rawPos;
             setTempPoint(pos);
         }
     }, [isDrawingMode, draggedPointIndex, polygonPoints, getSVGCoordinates]);
@@ -151,6 +175,6 @@ export function usePolygonConstructor<TId extends string | number = number>(
         polygonPoints, setPolygonPoints, tempPoint, setDraggedPointIndex, draggedPointIndex,
         handleContextMenu, handleCloseContextMenu, startDrawingMode, handleMapDoubleClick,
         handleMapMouseMove, handlePointMouseDown, handlePointContextMenu, finalizeDrawing,
-        isEditing, editingId, setEditingId, setIsEditing, setIsDrawingMode, resetDrawing,handleMapMouseUp
+        isEditing, editingId, setEditingId, setIsEditing, setIsDrawingMode, resetDrawing, handleMapMouseUp
     };
 }

@@ -1,7 +1,4 @@
-import type {Node} from "../Node.ts";
-import type {Edge} from "../Edge.ts";
-
 export interface BuildingGraphResponse {
-    nodes: Node[];
-    edges: Edge[];
+    nodes: { id: string; floor: number; x: number; y: number; buildingId?: number | null }[];
+    edges: { id: number; from: string; to: string; weight: number; type: string }[];
 }

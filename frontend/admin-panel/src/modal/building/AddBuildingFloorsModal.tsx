@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, Box, TextField, IconButton, Typography
+    Button, Box, TextField, IconButton, Typography, CircularProgress
 } from '@mui/material';
 import { DeleteOutlined } from "@mui/icons-material";
 
@@ -13,8 +13,11 @@ const inputStyle = {
 };
 
 interface FloorDraft {
+    id?: number;
     floorNumber: number;
     file: File | null;
+    existingImagePath?: string;
+    markedForDeletion?: boolean;
 }
 
 interface AddBuildingFloorsModalProps {
@@ -22,22 +25,36 @@ interface AddBuildingFloorsModalProps {
     onClose: () => void;
     floors: FloorDraft[];
     onFloorsChange: (floors: FloorDraft[]) => void;
+    onRemoveFloor: (index: number) => void;
+    onUndoRemoveFloor: (index: number) => void;
     onBack: () => void;
     onSave: () => void;
     isSaving: boolean;
+    isLoadingFloors?: boolean;
 }
 
 export default function AddBuildingFloorsModal({
-                                                   open, onClose, floors, onFloorsChange, onBack, onSave, isSaving
+                                                   open,
+                                                   onClose,
+                                                   floors,
+                                                   onFloorsChange,
+                                                   onRemoveFloor,
+                                                   onBack, onSave,
+                                                   isSaving,
+                                                   isLoadingFloors,
+                                                   onUndoRemoveFloor
                                                }: AddBuildingFloorsModalProps) {
 
     const duplicateIndexes = useMemo(() => {
+        const activeFloors = floors.filter(f => !f.markedForDeletion);
         const counts = new Map<number, number>();
-        floors.forEach(f => counts.set(f.floorNumber, (counts.get(f.floorNumber) || 0) + 1));
+        activeFloors.forEach(f => counts.set(f.floorNumber, (counts.get(f.floorNumber) || 0) + 1));
 
         const duplicates = new Set<number>();
         floors.forEach((f, i) => {
-            if ((counts.get(f.floorNumber) || 0) > 1) duplicates.add(i);
+            if (!f.markedForDeletion && (counts.get(f.floorNumber) || 0) > 1) {
+                duplicates.add(i);
+            }
         });
         return duplicates;
     }, [floors]);
@@ -51,10 +68,6 @@ export default function AddBuildingFloorsModal({
             nextNumber += 1;
         }
         onFloorsChange([...floors, { floorNumber: nextNumber, file: null }]);
-    };
-
-    const removeFloorRow = (index: number) => {
-        onFloorsChange(floors.filter((_, i) => i !== index));
     };
 
     const updateFloorNumber = (index: number, value: number) => {
@@ -91,8 +104,42 @@ export default function AddBuildingFloorsModal({
             </DialogTitle>
 
             <DialogContent>
-                {floors.map((f, i) => {
+                {isLoadingFloors && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                        <CircularProgress size={24} sx={{ color: '#2F80ED' }} />
+                    </Box>
+                )}
+
+                {!isLoadingFloors && floors.map((f, i) => {
                     const isDuplicate = duplicateIndexes.has(i);
+                    const isExisting = f.id !== undefined;
+
+                    if (f.markedForDeletion) {
+                        return (
+                            <Box
+                                key={i}
+                                sx={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    gap: 1, mb: 2, p: 1.5,
+                                    bgcolor: 'rgba(244, 67, 54, 0.06)',
+                                    border: '1px dashed rgba(244, 67, 54, 0.3)',
+                                    borderRadius: '8px',
+                                }}
+                            >
+                                <Typography sx={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through' }}>
+                                    Этаж {f.floorNumber} — будет удалён при сохранении
+                                </Typography>
+                                <Button
+                                    size="small"
+                                    onClick={() => onUndoRemoveFloor(i)}
+                                    sx={{ color: '#2F80ED', textTransform: 'none' }}
+                                >
+                                    Отменить
+                                </Button>
+                            </Box>
+                        );
+                    }
+
                     return (
                         <Box key={i} sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
                             <TextField
@@ -123,14 +170,14 @@ export default function AddBuildingFloorsModal({
                                 variant="outlined"
                                 sx={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff', textTransform: 'none', mt: 1 }}
                             >
-                                {f.file ? f.file.name : "Выбрать файл"}
+                                {f.file ? f.file.name : isExisting ? "Заменить файл" : "Выбрать файл"}
                                 <input type="file" hidden onChange={(e) => {
                                     if (e.target.files?.[0]) updateFloorFile(i, e.target.files[0]);
                                 }} />
                             </Button>
 
                             <IconButton
-                                onClick={() => removeFloorRow(i)}
+                                onClick={() => onRemoveFloor(i)}
                                 sx={{ color: 'rgba(255,255,255,0.5)', mt: 1, '&:hover': { color: '#f44336' } }}
                             >
                                 <DeleteOutlined />
@@ -139,12 +186,11 @@ export default function AddBuildingFloorsModal({
                     );
                 })}
 
-                <Button
-                    onClick={addFloorRow}
-                    sx={{ color: '#2F80ED', mt: 1, textTransform: 'none' }}
-                >
-                    + Добавить этаж
-                </Button>
+                {!isLoadingFloors && (
+                    <Button onClick={addFloorRow} sx={{ color: '#2F80ED', mt: 1, textTransform: 'none' }}>
+                        + Добавить этаж
+                    </Button>
+                )}
 
                 {hasDuplicates && (
                     <Typography sx={{ mt: 1.5, fontSize: '13px', color: '#f44336' }}>
