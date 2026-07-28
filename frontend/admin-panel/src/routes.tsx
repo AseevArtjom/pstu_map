@@ -4,7 +4,7 @@ import { Box, CircularProgress } from '@mui/material';
 import LoginPage from "./pages/LoginPage.tsx";
 import CallbackPage from "./pages/CallbackPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
-import type {JSX} from "react";
+import type { JSX } from "react";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { isAuthenticated, isLoading } = useLogto();
@@ -27,26 +27,31 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+    [
+        {
+            path: '/login',
+            element: <LoginPage />,
+        },
+        {
+            path: '/callback',
+            element: <CallbackPage />,
+        },
+        {
+            path: '/',
+            element: (
+                <ProtectedRoute>
+                    <DashboardPage />
+                </ProtectedRoute>
+            ),
+            children: [],
+        },
+        {
+            path: '*',
+            element: <Navigate to="/" replace />,
+        },
+    ],
     {
-        path: '/login',
-        element: <LoginPage />,
-    },
-    {
-        path: '/callback',
-        element: <CallbackPage />,
-    },
-    {
-        path: '/',
-        element: (
-            <ProtectedRoute>
-                <DashboardPage />
-            </ProtectedRoute>
-        ),
-        children: [],
-    },
-    {
-        path: '*',
-        element: <Navigate to="/" replace />,
-    },
-]);
+        basename: '/admin',
+    }
+);

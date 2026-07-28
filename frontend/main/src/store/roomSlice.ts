@@ -24,6 +24,7 @@ export const fetchRoomsByBuilding = createAsyncThunk<Room[], number>(
     }
 );
 
+
 const roomSlice = createSlice({
     name: 'room',
     initialState,
@@ -50,7 +51,7 @@ const roomSlice = createSlice({
             })
             .addCase(fetchRoomsByBuilding.rejected, (state) => {
                 state.loading = false;
-            });
+            })
     },
 });
 

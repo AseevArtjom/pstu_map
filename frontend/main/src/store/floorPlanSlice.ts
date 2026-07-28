@@ -29,31 +29,6 @@ export const fetchFloorsByBuilding = createAsyncThunk<FloorPlanDto[], number>(
     }
 );
 
-export const uploadFloorPlan = createAsyncThunk<
-    FloorPlanDto,
-    { buildingId: number; floorNumber: number; file: File }
->(
-    'floor/upload',
-    async ({ buildingId, floorNumber, file }) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        const response = await http.post<FloorPlanDto>(
-            `/api/buildings/${buildingId}/floors/${floorNumber}`,
-            formData,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
-        return response.data;
-    }
-);
-
-export const deleteFloorPlan = createAsyncThunk<number, { buildingId: number; floorId: number }>(
-    'floor/delete',
-    async ({ buildingId, floorId }) => {
-        await http.delete(`/api/buildings/${buildingId}/floors/${floorId}`);
-        return floorId;
-    }
-);
-
 const floorPlanSlice = createSlice({
     name: 'floorPlan',
     initialState,
@@ -76,27 +51,6 @@ const floorPlanSlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || 'Не удалось загрузить этажи';
             })
-
-            .addCase(uploadFloorPlan.pending, (state) => {
-                state.uploading = true;
-            })
-            .addCase(uploadFloorPlan.fulfilled, (state, action) => {
-                state.uploading = false;
-                const index = state.floors.findIndex(f => f.floorNumber === action.payload.floorNumber);
-                if (index !== -1) {
-                    state.floors[index] = action.payload;
-                } else {
-                    state.floors.push(action.payload);
-                }
-            })
-            .addCase(uploadFloorPlan.rejected, (state, action) => {
-                state.uploading = false;
-                state.error = action.error.message || 'Ошибка при загрузке файла';
-            })
-
-            .addCase(deleteFloorPlan.fulfilled, (state, action) => {
-                state.floors = state.floors.filter(f => f.id !== action.payload);
-            });
     },
 });
 

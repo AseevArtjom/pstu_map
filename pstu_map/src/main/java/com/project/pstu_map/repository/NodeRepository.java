@@ -11,4 +11,5 @@ public interface NodeRepository extends JpaRepository<Node,String>
 {
     List<Node> findByBuildingId(Integer buildingId);
     List<Node> findByBuildingIdAndFloor(Integer buildingId, int floor);
+    List<Node> findByBuildingIsNull();
 }

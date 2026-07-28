@@ -1,6 +1,7 @@
-import type {Node} from "../Node.ts";
+import type {PathStep} from "../PathStep";
 
 export interface PathResponse {
-    path: Node[];
+    nodes: { id: string; floor: number; x: number; y: number; buildingId?: number | null }[];
+    steps: PathStep[];
     totalDistance: number;
 }

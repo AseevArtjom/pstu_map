@@ -1,6 +1,6 @@
 import { Menu, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import SwapVertIcon from '@mui/icons-material/SwapVert';
+import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 interface NodeContextMenuProps {
@@ -8,12 +8,12 @@ interface NodeContextMenuProps {
     mouseY: number;
     onClose: () => void;
     onDelete: () => void;
-    onStartInterFloorLink: () => void;
-    onDeleteInterFloorLink?: () => void;
+    onStartCrossLocationLink: () => void;
+    onDeleteCrossLocationLink?: () => void;
 }
 
 export default function NodeContextMenu({
-                                            mouseX, mouseY, onClose, onDelete, onStartInterFloorLink, onDeleteInterFloorLink
+                                            mouseX, mouseY, onClose, onDelete, onStartCrossLocationLink, onDeleteCrossLocationLink
                                         }: NodeContextMenuProps) {
     const open = mouseY !== 0 && mouseX !== 0;
 
@@ -36,17 +36,23 @@ export default function NodeContextMenu({
                 },
             }}
         >
-            {!onDeleteInterFloorLink && (
-                <MenuItem onClick={() => { onStartInterFloorLink(); onClose(); }}>
-                    <ListItemIcon><SwapVertIcon sx={{ color: '#2F80ED' }} /></ListItemIcon>
-                    <ListItemText primary="Связать с другим этажом..." />
+            {!onDeleteCrossLocationLink && (
+                <MenuItem onClick={() => { onStartCrossLocationLink(); onClose(); }}>
+                    <ListItemIcon><LinkIcon sx={{ color: '#2F80ED' }} /></ListItemIcon>
+                    <ListItemText
+                        primary="Связать с другим узлом..."
+                        secondary="Другой этаж, корпус или улица"
+                        slotProps={{
+                            secondary: { style: { color: 'rgba(255,255,255,0.4)', fontSize: '11px' } }
+                        }}
+                    />
                 </MenuItem>
             )}
 
-            {onDeleteInterFloorLink && (
-                <MenuItem onClick={() => { onDeleteInterFloorLink(); onClose(); }} sx={{ color: '#F44336' }}>
+            {onDeleteCrossLocationLink && (
+                <MenuItem onClick={() => { onDeleteCrossLocationLink(); onClose(); }} sx={{ color: '#F44336' }}>
                     <ListItemIcon><LinkOffIcon sx={{ color: '#F44336' }} /></ListItemIcon>
-                    <ListItemText primary="Удалить связь между этажами" />
+                    <ListItemText primary="Удалить межлокационную связь" />
                 </MenuItem>
             )}
 

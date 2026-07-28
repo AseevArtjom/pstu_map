@@ -1,0 +1,1 @@
+export type EdgeType = "stairs" | "elevator" | "outdoor" | "transition";

@@ -13,6 +13,7 @@ export interface ContextMenuState<TId = number> {
 }
 
 export const parsePoints = (pointsStr: string): SVGPoint[] => {
+    if (!pointsStr) return [];
     return pointsStr.split(' ').map(p => {
         const [x, y] = p.split(',');
         return { x: Number(x), y: Number(y) };
@@ -48,18 +49,26 @@ export function usePolygonConstructor<TId extends string | number = number>(
 
     const getSVGCoordinates = useCallback((clientX: number, clientY: number): SVGPoint => {
         if (!mapContainerRef.current) return { x: 0, y: 0 };
-        const svgElement = mapContainerRef.current.querySelector('svg');
+
+        const targetLayer = mapContainerRef.current.querySelector('#map-content-layer') as SVGGraphicsElement | null;
+        const svgElement = targetLayer?.ownerSVGElement || mapContainerRef.current.querySelector('svg');
 
         if (!svgElement) return { x: 0, y: 0 };
+
+        const activeElement = targetLayer || svgElement;
+        const ctm = activeElement.getScreenCTM();
+
+        if (!ctm) return { x: 0, y: 0 };
+
         const pt = svgElement.createSVGPoint();
         pt.x = clientX;
         pt.y = clientY;
 
-        const svgP = pt.matrixTransform(svgElement.getScreenCTM()?.inverse());
+        const localPt = pt.matrixTransform(ctm.inverse());
 
         return {
-            x: Math.round(svgP.x - 120),
-            y: Math.round(svgP.y - 120)
+            x: Math.round(localPt.x),
+            y: Math.round(localPt.y)
         };
     }, []);
 

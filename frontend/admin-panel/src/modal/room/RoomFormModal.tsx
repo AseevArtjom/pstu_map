@@ -341,7 +341,7 @@ export default function RoomFormModal({
                         </Typography>
 
                         <TextField
-                            label="Название типа (например: Лаборатория)"
+                            label="Название типа"
                             fullWidth
                             size="small"
                             value={newTypeName}

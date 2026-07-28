@@ -26,10 +26,35 @@ services:
     restart: "no"
     command: -url=jdbc:postgresql://postgres_db:5432/${DB_NAME:-university_navigator} -user=${DB_USER:-postgres} -password=${DB_PASSWORD:-postgres} -baselineOnMigrate=true migrate
     volumes:
-      - ./src/main/resources/db/migration:/flyway/sql
+      - ./pstu_map/src/main/resources/db/migration:/flyway/sql
     depends_on:
       postgres_db:
         condition: service_healthy
+
+  backend:
+    build:
+      context: ./pstu_map
+    container_name: backend_app
+    restart: always
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/${DB_NAME:-university_navigator}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-postgres}
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+    volumes:
+      - ./uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nginx_frontend
+    restart: always
+    ports:
+      - "8000:80"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

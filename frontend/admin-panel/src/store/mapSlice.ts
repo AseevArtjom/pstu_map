@@ -2,8 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { Node } from "@shared/types/Node.ts";
 import type { Edge } from "@shared/types/Edge.ts";
 import type { BuildingGraphResponse } from "@shared/types/response/BuildingGraphResponse.ts";
-import type { PathResponse, PathStep } from "@shared/types/response/PathResponse.ts";
+import type { PathResponse } from "@shared/types/response/PathResponse.ts";
 import http from "../http.ts";
+import type {PathStep} from "@shared/types/PathStep.ts";
 
 interface MapState {
     nodes: Node[];
@@ -58,26 +59,37 @@ const mapSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            /* === fetchBuildingGraph === */
             .addCase(fetchBuildingGraph.pending, (state) => {
                 state.graphLoading = true;
             })
             .addCase(fetchBuildingGraph.fulfilled, (state, action) => {
                 state.graphLoading = false;
                 state.nodes = action.payload.nodes;
+
                 const nodeMap = new Map(action.payload.nodes.map(n => [n.id, n]));
-                state.edges = action.payload.edges
-                    .map(e => {
-                        const fromNode = nodeMap.get(e.from);
-                        const toNode = nodeMap.get(e.to);
-                        if (!fromNode || !toNode) return null;
-                        return { id: e.id, fromNode, toNode, weight: e.weight, type: e.type };
-                    })
-                    .filter((e): e is Edge => e !== null);
+
+                const validEdges: Edge[] = [];
+                for (const e of action.payload.edges) {
+                    const fromNode = nodeMap.get(e.from);
+                    const toNode = nodeMap.get(e.to);
+                    if (fromNode && toNode) {
+                        validEdges.push({
+                            id: e.id,
+                            fromNode,
+                            toNode,
+                            weight: e.weight,
+                            type: e.type,
+                        } as Edge);
+                    }
+                }
+                state.edges = validEdges;
             })
             .addCase(fetchBuildingGraph.rejected, (state, action) => {
                 state.graphLoading = false;
                 state.error = action.error.message || 'Ошибка загрузки графа';
             })
+
             .addCase(calculateRoute.pending, (state) => {
                 state.routeLoading = true;
                 state.error = null;

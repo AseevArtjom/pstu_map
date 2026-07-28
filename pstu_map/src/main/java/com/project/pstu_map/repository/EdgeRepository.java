@@ -27,4 +27,8 @@ public interface EdgeRepository extends JpaRepository<Edge, Long> {
     @Modifying
     @Query("DELETE FROM Edge e WHERE e.fromNode IN :nodes OR e.toNode IN :nodes")
     void deleteByNodeIn(@Param("nodes") List<Node> nodes);
+
+    @EntityGraph(attributePaths = {"fromNode", "toNode"})
+    @Query("SELECT e FROM Edge e WHERE e.fromNode.building IS NULL OR e.toNode.building IS NULL")
+    List<Edge> findAllOutdoorOrBoundary();
 }

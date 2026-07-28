@@ -54,7 +54,7 @@ const buildingSlice = createSlice({
             .addCase(fetchAllBuildings.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Ошибка загрузки зданий';
-            });
+            })
     },
 });
 

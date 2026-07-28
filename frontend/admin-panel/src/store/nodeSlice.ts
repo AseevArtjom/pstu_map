@@ -3,7 +3,7 @@ import type { Node } from "@shared/types/Node.ts";
 import type { NodeCreateDto } from "../types/node/NodeCreateDto.ts";
 import type { NodeUpdateDto } from "../types/node/NodeUpdateDto.ts";
 import http from "../http.ts";
-import type {NodeResponseDto} from "@shared/types/response/NodeResponseDto.ts";
+import type { NodeResponseDto } from "@shared/types/response/NodeResponseDto.ts";
 
 interface NodeState {
     nodes: Node[];
@@ -20,12 +20,29 @@ const toNode = (dto: NodeResponseDto): Node => ({
     floor: dto.floor,
     x: dto.x,
     y: dto.y,
+    building: dto.buildingId ? ({ id: dto.buildingId } as any) : undefined,
 });
 
 export const fetchNodesByBuilding = createAsyncThunk<Node[], number>(
     'node/fetchByBuilding',
     async (buildingId) => {
         const response = await http.get<NodeResponseDto[]>(`/api/nodes?buildingId=${buildingId}`);
+        return response.data.map(toNode);
+    }
+);
+
+export const fetchOutdoorNodes = createAsyncThunk<Node[]>(
+    'node/fetchOutdoor',
+    async () => {
+        const response = await http.get<NodeResponseDto[]>('/api/nodes/outdoor');
+        return response.data.map(toNode);
+    }
+);
+
+export const fetchAllNodesGlobal = createAsyncThunk<Node[]>(
+    'node/fetchAllGlobal',
+    async () => {
+        const response = await http.get<NodeResponseDto[]>('/api/nodes');
         return response.data.map(toNode);
     }
 );
@@ -69,10 +86,21 @@ const nodeSlice = createSlice({
             })
             .addCase(fetchNodesByBuilding.fulfilled, (state, action) => {
                 state.loading = false;
-                state.nodes = action.payload;
+                const currentBuildingId = action.meta.arg;
+
+                const otherNodes = state.nodes.filter(n => n.building?.id !== currentBuildingId);
+                state.nodes = [...otherNodes, ...action.payload];
             })
             .addCase(fetchNodesByBuilding.rejected, (state) => {
                 state.loading = false;
+            })
+            .addCase(fetchOutdoorNodes.fulfilled, (state, action) => {
+                const existingIds = new Set(state.nodes.map(n => n.id));
+                const newNodes = action.payload.filter(n => !existingIds.has(n.id));
+                state.nodes.push(...newNodes);
+            })
+            .addCase(fetchAllNodesGlobal.fulfilled, (state, action) => {
+                state.nodes = action.payload;
             })
             .addCase(createNode.fulfilled, (state, action) => {
                 state.nodes.push(action.payload);

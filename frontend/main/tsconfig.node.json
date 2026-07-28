@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "paths": {
+      "@shared/*": ["../shared-frontend/*"],
+      "@shared": ["../shared-frontend"]
+    },
     "target": "es2023",
     "lib": ["ES2023"],
     "types": ["node"],

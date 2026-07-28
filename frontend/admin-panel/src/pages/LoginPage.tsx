@@ -7,7 +7,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            signIn('http://localhost:5174/callback');
+            signIn('http://localhost:8000/admin/callback');
         }
     }, [isLoading, isAuthenticated, signIn]);
 

@@ -14,6 +14,36 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import EntityIcon from "./EntityIcon.tsx";
 import { calculateRoute, clearCalculatedPath } from "../store/mapSlice.ts";
 
+const autocompleteSlotProps = {
+    paper: {
+        sx: {
+            bgcolor: '#15161A',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#E4E6EB',
+        }
+    },
+    listbox: {
+        sx: {
+            '& .MuiAutocomplete-option': {
+                fontSize: '14px',
+                color: '#E4E6EB',
+            },
+            '& .MuiAutocomplete-option.Mui-focused': {
+                bgcolor: 'rgba(47, 128, 237, 0.15)',
+            },
+            '& .MuiAutocomplete-option[aria-selected="true"]': {
+                bgcolor: 'rgba(47, 128, 237, 0.25)',
+            },
+        }
+    },
+    clearIndicator: {
+        sx: { color: 'rgba(255,255,255,0.5)' }
+    },
+    popupIndicator: {
+        sx: { color: 'rgba(255,255,255,0.5)' }
+    },
+};
+
 const DRAWER_WIDTH = 400;
 
 interface SideBarProps {
@@ -56,7 +86,7 @@ export default function SideBar({
     const dispatch = useAppDispatch();
     const { buildings, loading, selectedFloor } = useAppSelector((state) => state.building);
     const { rooms } = useAppSelector((state) => state.room);
-    const { calculatedPath, pathSteps, totalDistance, routeLoading, error } = useAppSelector((state) => state.map);
+    const { calculatedPath, pathSteps, routeLoading, error } = useAppSelector((state) => state.map);
 
     const [fromRoomId, setFromRoomId] = useState<string | null>(null);
     const [toRoomId, setToRoomId] = useState<string | null>(null);
@@ -282,6 +312,7 @@ export default function SideBar({
                             value={navigableRooms.find(r => r.id === fromRoomId) || null}
                             onChange={(_, value) => setFromRoomId(value?.id ?? null)}
                             isOptionEqualToValue={(a, b) => a.id === b.id}
+                            slotProps={autocompleteSlotProps}
                             renderInput={(params) => (
                                 <TextField {...params} label="Откуда" size="small" sx={routeInputStyle} />
                             )}
@@ -303,6 +334,7 @@ export default function SideBar({
                             value={navigableRooms.find(r => r.id === toRoomId) || null}
                             onChange={(_, value) => setToRoomId(value?.id ?? null)}
                             isOptionEqualToValue={(a, b) => a.id === b.id}
+                            slotProps={autocompleteSlotProps}
                             renderInput={(params) => (
                                 <TextField {...params} label="Куда" size="small" sx={routeInputStyle} />
                             )}
@@ -330,7 +362,7 @@ export default function SideBar({
                             <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(47,128,237,0.08)', borderRadius: '8px' }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                                     <Typography sx={{ fontSize: '13px', fontWeight: 600, color: '#E4E6EB' }}>
-                                        Маршрут ({Math.round(totalDistance)} м · {pathSteps.filter(s => s.type !== 'corridor').length} перех.)
+                                        Маршрут ({pathSteps.filter(s => s.type !== 'corridor').length} перех.)
                                     </Typography>
                                     <Button
                                         size="small"

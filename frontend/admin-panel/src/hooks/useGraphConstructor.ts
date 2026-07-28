@@ -1,10 +1,35 @@
 import { useState, useCallback, useRef } from 'react';
+import type {EdgeType} from "@shared/types/EdgeType.ts";
 
-export interface GraphPoint {
-    id: string;
+export interface SVGPoint {
     x: number;
     y: number;
 }
+
+interface NodePosition {
+    x: number;
+    y: number;
+    floor?: number;
+}
+export const calculateEdgeWeight = (
+    fromNode: NodePosition,
+    toNode: NodePosition,
+    type: EdgeType | string = 'corridor'
+): number => {
+    if (type === 'outdoor') {
+        const dist = Math.hypot(toNode.x - fromNode.x, toNode.y - fromNode.y);
+        return Math.max(1, Math.round(dist));
+    }
+    if (type === 'stairs' || type === 'elevator') {
+        const floorDiff = Math.abs((fromNode.floor ?? 0) - (toNode.floor ?? 0)) || 1;
+
+        const basePenalty = type === 'elevator' ? 15 : 280;
+        return basePenalty * floorDiff;
+    }
+
+    const distance = Math.hypot(toNode.x - fromNode.x, toNode.y - fromNode.y);
+    return Math.max(1, Math.round(distance));
+};
 
 const snapToAxis = (reference: { x: number; y: number }, point: { x: number; y: number }) => {
     const dx = Math.abs(point.x - reference.x);
@@ -21,20 +46,46 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
 
     const lastPlacedPosRef = useRef<{ x: number; y: number } | null>(null);
 
-    const getSVGCoordinates = useCallback((clientX: number, clientY: number) => {
+    const getSVGCoordinates = useCallback((clientX: number, clientY: number): SVGPoint => {
         if (!mapContainerRef.current) return { x: 0, y: 0 };
 
-        const svgElement = mapContainerRef.current.querySelector('svg');
+        const targetLayer = mapContainerRef.current.querySelector('#map-content-layer') as SVGGraphicsElement | null;
+
+        const svgElement = targetLayer?.ownerSVGElement
+            || mapContainerRef.current.querySelector('svg:not(.MuiSvgIcon-root)');
+
         if (!svgElement) return { x: 0, y: 0 };
-        const targetGroup = svgElement.querySelector('g') || svgElement;
+
+        const activeElement = targetLayer || svgElement;
+        const ctm = activeElement.getScreenCTM();
+
+        if (!ctm) return { x: 0, y: 0 };
 
         const pt = svgElement.createSVGPoint();
         pt.x = clientX;
         pt.y = clientY;
 
-        const svgP = pt.matrixTransform(targetGroup.getScreenCTM()?.inverse());
-        return { x: Math.round(svgP.x), y: Math.round(svgP.y) };
+        const localPt = pt.matrixTransform(ctm.inverse());
+
+        return {
+            x: Math.round(localPt.x),
+            y: Math.round(localPt.y)
+        };
     }, [mapContainerRef]);
+
+    const buildEdgePayload = useCallback((
+        fromNode: NodePosition & { id: string },
+        toNode: NodePosition & { id: string },
+        type: EdgeType | string = 'corridor'
+    ) => {
+        const weight = calculateEdgeWeight(fromNode, toNode, type);
+        return {
+            fromNodeId: fromNode.id,
+            toNodeId: toNode.id,
+            weight,
+            type,
+        };
+    }, []);
 
     const handleMapDoubleClick = useCallback((
         event: React.MouseEvent,
@@ -87,6 +138,8 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
         selectedNodeId, setSelectedNodeId,
         draggedNodeId, setDraggedNodeId,
         handleMapDoubleClick, handleNodeClick, handleNodeDrag,
+        buildEdgePayload,
+        calculateEdgeWeight,
         getSVGCoordinates,
     };
 }

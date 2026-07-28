@@ -32,6 +32,14 @@ public class NodeService {
         return nodeRepository.findById(id);
     }
 
+    public List<Node> getOutdoorNodes() {
+        return nodeRepository.findByBuildingIsNull();
+    }
+
+    public List<Node> getAllNodes() {
+        return nodeRepository.findAll();
+    }
+
     @Transactional
     public Node createNode(NodeCreateDto dto) {
         Node node = new Node();

@@ -115,7 +115,7 @@ export default function InteractiveMap({
                                 height={mapDimensions.height}
                                 style={{ pointerEvents: "none" }}
                             />
-                            <g transform={`translate(${PADDING}, ${PADDING})`}>
+                            <g id="map-content-layer" transform={`translate(${PADDING}, ${PADDING})`}>
                                 {isGlobalMap && buildings.map((b) => {
                                     if (b.id === editingId || !b.mapPolygon) return null;
                                     const isHovered = !isDrawingMode && hoveredBuilding === b.id;

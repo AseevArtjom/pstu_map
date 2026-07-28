@@ -4,6 +4,10 @@ import * as path from "node:path";
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 5173,
+    host: true
+  },
   resolve:{
     alias:{
       '@shared' : path.resolve(__dirname,'../shared-frontend'),

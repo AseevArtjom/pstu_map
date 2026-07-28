@@ -28,6 +28,13 @@ public class EdgeController {
                 .toList();
     }
 
+    @GetMapping("/outdoor")
+    public List<EdgeDto> getOutdoorEdges() {
+        return edgeService.getOutdoorEdges().stream()
+                .map(edgeService::convertToDto)
+                .toList();
+    }
+
     @PostMapping
     public ResponseEntity<EdgeDto> createEdge(@RequestBody EdgeCreateDto dto) {
         Edge edge = edgeService.createEdge(dto);

@@ -24,7 +24,7 @@ public class EdgeService {
     private final NodeRepository nodeRepository;
 
     public List<Edge> getEdgesByBuildingId(Integer buildingId) {
-        return edgeRepository.findByFromNodeBuildingId(buildingId);
+        return edgeRepository.findAllByBuildingIdEitherSide(buildingId);
     }
 
     @Transactional
@@ -50,6 +50,10 @@ public class EdgeService {
         edge.setType(dto.getType());
 
         return edgeRepository.save(edge);
+    }
+
+    public List<Edge> getOutdoorEdges() {
+        return edgeRepository.findAllOutdoorOrBoundary();
     }
 
     @Transactional

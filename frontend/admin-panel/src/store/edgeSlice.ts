@@ -5,7 +5,7 @@ import type { EdgeCreateDto } from "../types/edge/EdgeCreateDto.ts";
 import type { EdgeUpdateDto } from "../types/edge/EdgeUpdateDto.ts";
 import http from "../http.ts";
 import type { RootState } from "./store.ts";
-import {deleteNode} from "./nodeSlice.ts";
+import { deleteNode } from "./nodeSlice.ts";
 
 interface EdgeState {
     edges: Edge[];
@@ -44,6 +44,15 @@ export const fetchEdgesByBuilding = createAsyncThunk<Edge[], number, { state: Ro
     'edge/fetchByBuilding',
     async (buildingId, { getState }) => {
         const response = await http.get<EdgeResponseDto[]>(`/api/edges?buildingId=${buildingId}`);
+        const { nodes } = getState().node;
+        return resolveEdges(response.data, nodes);
+    }
+);
+
+export const fetchOutdoorEdges = createAsyncThunk<Edge[], void, { state: RootState }>(
+    'edge/fetchOutdoor',
+    async (_, { getState }) => {
+        const response = await http.get<EdgeResponseDto[]>('/api/edges/outdoor');
         const { nodes } = getState().node;
         return resolveEdges(response.data, nodes);
     }
@@ -97,6 +106,11 @@ const edgeSlice = createSlice({
             .addCase(fetchEdgesByBuilding.rejected, (state) => {
                 state.loading = false;
             })
+            .addCase(fetchOutdoorEdges.fulfilled, (state, action) => {
+                const existingIds = new Set(state.edges.map(e => e.id));
+                const newEdges = action.payload.filter(e => !existingIds.has(e.id));
+                state.edges.push(...newEdges);
+            })
             .addCase(createEdge.fulfilled, (state, action: PayloadAction<Edge>) => {
                 state.edges.push(action.payload);
             })
@@ -108,11 +122,11 @@ const edgeSlice = createSlice({
                 state.edges = state.edges.filter(e => e.id !== action.payload);
             })
             .addCase(deleteNode.fulfilled, (state, action) => {
-            const deletedNodeId = action.meta.arg;
-            state.edges = state.edges.filter(
-                edge => edge.fromNode.id !== deletedNodeId && edge.toNode.id !== deletedNodeId
-            );
-        });
+                const deletedNodeId = action.meta.arg;
+                state.edges = state.edges.filter(
+                    edge => edge.fromNode.id !== deletedNodeId && edge.toNode.id !== deletedNodeId
+                );
+            });
     },
 });
 

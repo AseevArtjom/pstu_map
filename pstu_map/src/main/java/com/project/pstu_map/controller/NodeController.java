@@ -21,10 +21,11 @@ public class NodeController {
     private final NodeService nodeService;
 
     @GetMapping
-    public List<NodeDto> getNodesByBuildingId(@RequestParam("buildingId") Integer buildingId) {
-        return nodeService.getNodesByBuildingId(buildingId).stream()
-                .map(nodeService::convertToDto)
-                .toList();
+    public List<NodeDto> getNodes(@RequestParam(required = false) Integer buildingId) {
+        List<Node> nodes = buildingId != null
+                ? nodeService.getNodesByBuildingId(buildingId)
+                : nodeService.getAllNodes();
+        return nodes.stream().map(nodeService::convertToDto).toList();
     }
 
     @GetMapping("/{id}")
@@ -33,6 +34,13 @@ public class NodeController {
                 .map(nodeService::convertToDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/outdoor")
+    public List<NodeDto> getOutdoorNodes() {
+        return nodeService.getOutdoorNodes().stream()
+                .map(nodeService::convertToDto)
+                .toList();
     }
 
     @PostMapping
