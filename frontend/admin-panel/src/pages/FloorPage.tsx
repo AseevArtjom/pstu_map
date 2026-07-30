@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
     Box,
-    Button,
     Typography,
     ToggleButtonGroup,
     ToggleButton
@@ -362,9 +361,21 @@ export default function FloorPage({
                 }
 
                 if (graphConstructor.draggedNodeId) {
-                    const pos = graphConstructor.handleNodeDrag(e);
+                    const connectedEdge = edges.find(
+                        (ed) => ed.fromNode.id === graphConstructor.draggedNodeId || ed.toNode.id === graphConstructor.draggedNodeId
+                    );
+                    const neighborId = connectedEdge
+                        ? (connectedEdge.fromNode.id === graphConstructor.draggedNodeId ? connectedEdge.toNode.id : connectedEdge.fromNode.id)
+                        : null;
+                    const neighborNode = nodes.find((n) => n.id === neighborId);
+
+                    const pos = graphConstructor.handleNodeDrag(
+                        e,
+                        neighborNode ? { x: neighborNode.x, y: neighborNode.y } : undefined
+                    );
+
                     if (pos) {
-                        dispatch(updateNode({id: graphConstructor.draggedNodeId, data: pos}));
+                        dispatch(updateNode({ id: graphConstructor.draggedNodeId, data: pos }));
                     }
                 }
             }}
@@ -441,31 +452,6 @@ export default function FloorPage({
                     fontWeight: 500
                 }}>
                     Режим привязки: выберите существующий узел
-                </Box>
-            )}
-
-            {interFloorLink && (
-                <Box sx={{
-                    position: 'absolute',
-                    top: 60,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 10,
-                    bgcolor: '#4CAF50',
-                    color: '#fff',
-                    px: 3,
-                    py: 1,
-                    borderRadius: '20px',
-                    boxShadow: 3,
-                    fontWeight: 500,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2
-                }}>
-                    <span>Связь с этажа {interFloorLink.fromFloor}: перейдите на нужный этаж и выберите/создайте узел</span>
-                    <Button size="small" variant="contained" color="error" onClick={() => setInterFloorLink(null)}>
-                        Отмена
-                    </Button>
                 </Box>
             )}
 
@@ -607,7 +593,10 @@ export default function FloorPage({
                     ))
                 )}
 
-                <RouteOverlay selectedFloor={selectedFloor}/>
+                <RouteOverlay
+                    selectedFloor={selectedFloor}
+                    selectedBuildingId={buildingId}
+                />
 
                 {activeTooltipData && (
                     <RoomTooltip

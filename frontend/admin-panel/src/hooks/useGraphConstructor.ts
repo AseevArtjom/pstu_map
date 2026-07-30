@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import type {EdgeType} from "@shared/types/EdgeType.ts";
+import type { EdgeType } from "@shared/types/EdgeType.ts";
 
 export interface SVGPoint {
     x: number;
@@ -11,6 +11,7 @@ interface NodePosition {
     y: number;
     floor?: number;
 }
+
 export const calculateEdgeWeight = (
     fromNode: NodePosition,
     toNode: NodePosition,
@@ -22,7 +23,6 @@ export const calculateEdgeWeight = (
     }
     if (type === 'stairs' || type === 'elevator') {
         const floorDiff = Math.abs((fromNode.floor ?? 0) - (toNode.floor ?? 0)) || 1;
-
         const basePenalty = type === 'elevator' ? 15 : 280;
         return basePenalty * floorDiff;
     }
@@ -34,9 +34,10 @@ export const calculateEdgeWeight = (
 const snapToAxis = (reference: { x: number; y: number }, point: { x: number; y: number }) => {
     const dx = Math.abs(point.x - reference.x);
     const dy = Math.abs(point.y - reference.y);
+    // Выравниваем по той оси, к которой ближе, или фиксируем координату
     return dx >= dy
-        ? { x: point.x, y: reference.y }
-        : { x: reference.x, y: point.y };
+        ? { x: point.x, y: reference.y } // Тянем по горизонтали (Y фиксирован по соседу)
+        : { x: reference.x, y: point.y }; // Тянем по вертикали (X фиксирован по соседу)
 };
 
 export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElement | null>) {
@@ -50,7 +51,6 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
         if (!mapContainerRef.current) return { x: 0, y: 0 };
 
         const targetLayer = mapContainerRef.current.querySelector('#map-content-layer') as SVGGraphicsElement | null;
-
         const svgElement = targetLayer?.ownerSVGElement
             || mapContainerRef.current.querySelector('svg:not(.MuiSvgIcon-root)');
 
@@ -127,6 +127,7 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
         if (!draggedNodeId) return null;
         const rawPos = getSVGCoordinates(event.clientX, event.clientY);
 
+        // Если зажат Shift и передана опорная точка связанного узла
         if (event.shiftKey && referencePoint) {
             return snapToAxis(referencePoint, rawPos);
         }
@@ -136,8 +137,11 @@ export function useGraphConstructor(mapContainerRef: React.RefObject<HTMLDivElem
     return {
         isGraphMode, setIsGraphMode,
         selectedNodeId, setSelectedNodeId,
-        draggedNodeId, setDraggedNodeId,
-        handleMapDoubleClick, handleNodeClick, handleNodeDrag,
+        draggedNodeId,
+        setDraggedNodeId,
+        handleMapDoubleClick,
+        handleNodeClick,
+        handleNodeDrag,
         buildEdgePayload,
         calculateEdgeWeight,
         getSVGCoordinates,

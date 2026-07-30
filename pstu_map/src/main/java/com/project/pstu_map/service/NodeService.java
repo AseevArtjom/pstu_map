@@ -40,6 +40,10 @@ public class NodeService {
         return nodeRepository.findAll();
     }
 
+    public Optional<Node> getEntranceNode(Integer buildingId) {
+        return nodeRepository.findEntranceNodesByBuilding(buildingId).stream().findFirst();
+    }
+
     @Transactional
     public Node createNode(NodeCreateDto dto) {
         Node node = new Node();

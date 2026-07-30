@@ -21,10 +21,17 @@ public class MapController {
 
     @GetMapping("/path")
     public PathResponseDto findPath(
-            @RequestParam String fromRoomId,
-            @RequestParam String toRoomId
-    ) {
-        return mapService.calculatePath(fromRoomId, toRoomId);
+            @RequestParam(value = "fromRoomId", required = false) String fromRoomId,
+            @RequestParam(value = "fromId", required = false) String fromId,
+            @RequestParam(value = "fromType", defaultValue = "room") String fromType,
+            @RequestParam(value = "toRoomId", required = false) String toRoomId,
+            @RequestParam(value = "toId", required = false) String toId,
+            @RequestParam(value = "toType", defaultValue = "room") String toType) {
+
+        String actualFromId = fromId != null ? fromId : fromRoomId;
+        String actualToId = toId != null ? toId : toRoomId;
+
+        return mapService.calculatePath(actualFromId, fromType, actualToId, toType);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

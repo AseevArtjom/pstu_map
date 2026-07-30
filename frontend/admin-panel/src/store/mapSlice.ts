@@ -1,10 +1,20 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { Node } from "@shared/types/Node.ts";
 import type { Edge } from "@shared/types/Edge.ts";
 import type { BuildingGraphResponse } from "@shared/types/response/BuildingGraphResponse.ts";
 import type { PathResponse } from "@shared/types/response/PathResponse.ts";
 import http from "../http.ts";
-import type {PathStep} from "@shared/types/PathStep.ts";
+import type { PathStep } from "@shared/types/PathStep.ts";
+
+export interface RouteOption {
+    kind: 'building' | 'room';
+    id: string;
+    label: string;
+    buildingId: number;
+    roomId?: string | null;
+    nodeId?: string | null;
+    floor?: number;
+}
 
 interface MapState {
     nodes: Node[];
@@ -15,6 +25,8 @@ interface MapState {
     graphLoading: boolean;
     routeLoading: boolean;
     error: string | null;
+    fromOption: RouteOption | null;
+    toOption: RouteOption | null;
 }
 
 const initialState: MapState = {
@@ -26,6 +38,8 @@ const initialState: MapState = {
     graphLoading: false,
     routeLoading: false,
     error: null,
+    fromOption: null,
+    toOption: null,
 };
 
 export const fetchBuildingGraph = createAsyncThunk<BuildingGraphResponse, number>(
@@ -36,12 +50,10 @@ export const fetchBuildingGraph = createAsyncThunk<BuildingGraphResponse, number
     }
 );
 
-export const calculateRoute = createAsyncThunk<PathResponse, { fromRoomId: string; toRoomId: string }>(
+export const calculateRoute = createAsyncThunk(
     'map/calculateRoute',
-    async ({ fromRoomId, toRoomId }) => {
-        const response = await http.get<PathResponse>('/api/map/path', {
-            params: { fromRoomId, toRoomId },
-        });
+    async (params: { fromId: string; fromType: string; toId: string; toType: string }) => {
+        const response = await http.get<PathResponse>('/api/map/path', { params });
         return response.data;
     }
 );
@@ -56,10 +68,31 @@ const mapSlice = createSlice({
             state.totalDistance = 0;
             state.error = null;
         },
+        setFromOption: (state, action: PayloadAction<RouteOption | null>) => {
+            state.fromOption = action.payload;
+        },
+        setToOption: (state, action: PayloadAction<RouteOption | null>) => {
+            state.toOption = action.payload;
+        },
+        swapRouteOptions: (state) => {
+            const temp = state.fromOption;
+            state.fromOption = state.toOption;
+            state.toOption = temp;
+        },
+        clearRoute: (state) => {
+            state.calculatedPath = [];
+            state.pathSteps = [];
+            state.totalDistance = 0;
+            state.fromOption = null;
+            state.toOption = null;
+            state.error = null;
+        },
+        setCalculatedPath: (state, action: PayloadAction<Node[]>) => {
+            state.calculatedPath = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
-            /* === fetchBuildingGraph === */
             .addCase(fetchBuildingGraph.pending, (state) => {
                 state.graphLoading = true;
             })
@@ -89,7 +122,6 @@ const mapSlice = createSlice({
                 state.graphLoading = false;
                 state.error = action.error.message || 'Ошибка загрузки графа';
             })
-
             .addCase(calculateRoute.pending, (state) => {
                 state.routeLoading = true;
                 state.error = null;
@@ -109,5 +141,13 @@ const mapSlice = createSlice({
     },
 });
 
-export const { clearCalculatedPath } = mapSlice.actions;
+export const {
+    clearCalculatedPath,
+    setFromOption,
+    setToOption,
+    swapRouteOptions,
+    clearRoute,
+    setCalculatedPath
+} = mapSlice.actions;
+
 export default mapSlice.reducer;

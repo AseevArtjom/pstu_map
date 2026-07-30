@@ -38,6 +38,10 @@ public class RoomService {
         return roomRepository.findByBuildingId(buildingId);
     }
 
+    public List<Room> getNavigableRooms() {
+        return roomRepository.findByNodeIsNotNull();
+    }
+
     @Transactional
     public Room createRoom(RoomCreateDto dto) {
         Building building = buildingRepository.findById(dto.getBuildingId())

@@ -35,29 +35,45 @@ public class MapService {
         return new BuildingGraphResponseDto(nodeDtos, edgeDtos);
     }
 
-    public PathResponseDto calculatePath(String fromRoomId, String toRoomId) {
-        Room startRoom = roomRepository.findById(fromRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("Комната старта не найдена: " + fromRoomId));
-        Room endRoom = roomRepository.findById(toRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("Комната финиша не найдена: " + toRoomId));
+    private Node resolveTarget(String id, String type) {
+        return switch (type.toUpperCase()) {
+            case "ROOM" -> roomRepository.findById(id)
+                    .map(room -> {
+                        if (room.getNode() == null) {
+                            throw new IllegalStateException("У комнаты \"" + room.getName() + "\" не привязан узел навигации");
+                        }
+                        return room.getNode();
+                    })
+                    .orElseThrow(() -> new IllegalArgumentException("Не найдена комната: " + id));
 
-        Node startNode = startRoom.getNode();
-        Node endNode = endRoom.getNode();
+            case "NODE" -> nodeRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Не найден узел навигации: " + id));
 
-        if (startNode == null) {
-            throw new IllegalStateException("У комнаты \"" + startRoom.getName() + "\" не привязан узел навигации");
-        }
-        if (endNode == null) {
-            throw new IllegalStateException("У комнаты \"" + endRoom.getName() + "\" не привязан узел навигации");
-        }
+            case "BUILDING" -> {
+                int buildingId;
+                try {
+                    buildingId = Integer.parseInt(id);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("ID корпуса должен быть числом, получено: " + id);
+                }
+                yield nodeRepository.findEntranceNodesByBuilding(buildingId)
+                        .stream().findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("У корпуса " + buildingId + " не задан вход (entrance)"));
+            }
+
+            default -> throw new IllegalArgumentException("Неизвестный тип точки навигации: " + type + ". Доступны: ROOM, NODE, BUILDING");
+        };
+    }
+
+    public PathResponseDto calculatePath(String fromId, String fromType, String toId, String toType) {
+        Node startNode = resolveTarget(fromId, fromType);
+        Node endNode = resolveTarget(toId, toType);
 
         if (startNode.getId().equals(endNode.getId())) {
             NodeDto onlyNode = toNodeDto(startNode);
             return new PathResponseDto(List.of(onlyNode), List.of(), 0.0);
         }
 
-        // Ищем по всем узлам/рёбрам (а не только внутри одного здания) —
-        // так путь может проходить через уличные/межкорпусные узлы, если они есть.
         List<Node> allNodes = nodeRepository.findAll();
         List<Edge> allEdges = edgeRepository.findAll();
 
@@ -77,7 +93,7 @@ public class MapService {
         }
 
         Map<String, Double> distances = new HashMap<>();
-        Map<String, Edge> predecessorEdges = new HashMap<>(); // ребро, по которому пришли в узел
+        Map<String, Edge> predecessorEdges = new HashMap<>();
         PriorityQueue<NodeDistance> queue = new PriorityQueue<>(Comparator.comparingDouble(nd -> nd.distance));
 
         for (Node node : allNodes) {
@@ -111,7 +127,6 @@ public class MapService {
             throw new RuntimeException("Маршрут между указанными аудиториями невозможен");
         }
 
-        // Восстанавливаем путь по рёбрам (не только узлам), чтобы знать тип каждого перехода
         LinkedList<Node> pathNodes = new LinkedList<>();
         LinkedList<PathStepDto> steps = new LinkedList<>();
 

@@ -46,6 +46,7 @@ import type { CrossLocationLinkDraft } from "@shared/types/crossLocation/CrossLo
 import EdgeTypeDialog from "../components/context/EdgeTypeDialog.tsx";
 import InterFloorMarker from "../components/InterFloorMarker.tsx";
 import type {EdgeType} from "@shared/types/EdgeType.ts";
+import RouteOverlay from "../components/RouteOverlay.tsx";
 
 export default function DashboardPage() {
     const { logout, checkHasRole } = useAuthService();
@@ -345,7 +346,19 @@ export default function DashboardPage() {
             onMouseMove={(e) => {
                 buildingConstructor.handleMapMouseMove(e);
                 if (mapMode === 'graph' && outdoorGraph.draggedNodeId) {
-                    const pos = outdoorGraph.handleNodeDrag(e);
+                    const connectedEdge = outdoorEdges.find(
+                        (ed) => ed.fromNode.id === outdoorGraph.draggedNodeId || ed.toNode.id === outdoorGraph.draggedNodeId
+                    );
+                    const neighborId = connectedEdge
+                        ? (connectedEdge.fromNode.id === outdoorGraph.draggedNodeId ? connectedEdge.toNode.id : connectedEdge.fromNode.id)
+                        : null;
+                    const neighborNode = outdoorNodes.find((n) => n.id === neighborId);
+
+                    const pos = outdoorGraph.handleNodeDrag(
+                        e,
+                        neighborNode ? { x: neighborNode.x, y: neighborNode.y } : undefined
+                    );
+
                     if (pos) {
                         dispatch(updateNode({ id: outdoorGraph.draggedNodeId, data: pos }));
                     }
@@ -394,7 +407,7 @@ export default function DashboardPage() {
                                 Отмена
                             </Button>
                         }
-                        sx={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 12 }}
+                        sx={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 12 }}
                     >
                         Режим связывания: выберите второй узел (на карте или этаже), чтобы создать ребро.
                     </Alert>
@@ -530,6 +543,11 @@ export default function DashboardPage() {
                                 />
                             ))
                         )}
+
+                        <RouteOverlay
+                            selectedFloor={null}
+                            selectedBuildingId={null}
+                        />
 
                         {buildingConstructor.isDrawingMode && (
                             <PolygonDrawingLayer

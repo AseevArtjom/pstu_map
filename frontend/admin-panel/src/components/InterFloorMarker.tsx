@@ -90,7 +90,7 @@ export default function InterFloorMarker({
 
             <text
                 x={0}
-                y={16}
+                y={18}
                 textAnchor="middle"
                 fontSize="8"
                 fontWeight="700"

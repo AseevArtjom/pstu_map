@@ -35,6 +35,13 @@ public class RoomController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/navigable")
+    public List<RoomResponseDto> getNavigableRooms() {
+        return roomService.getNavigableRooms().stream()
+                .map(roomService::convertToResponseDto)
+                .toList();
+    }
+
     @PostMapping
     public ResponseEntity<RoomResponseDto> createRoom(@RequestBody RoomCreateDto dto) {
         Room room = roomService.createRoom(dto);

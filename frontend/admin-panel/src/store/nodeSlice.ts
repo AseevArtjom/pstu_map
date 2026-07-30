@@ -47,6 +47,22 @@ export const fetchAllNodesGlobal = createAsyncThunk<Node[]>(
     }
 );
 
+export const fetchEntranceNode = createAsyncThunk<
+    { buildingId: number; node: Node | null },
+    number
+>(
+    'node/fetchEntrance',
+    async (buildingId) => {
+        try {
+            const response = await http.get<NodeResponseDto>('/api/nodes/entrance', { params: { buildingId } });
+            const node = response.data ? toNode(response.data) : null;
+            return { buildingId, node };
+        } catch {
+            return { buildingId, node: null };
+        }
+    }
+);
+
 export const createNode = createAsyncThunk<Node, NodeCreateDto>(
     'node/create',
     async (dto) => {
@@ -101,6 +117,12 @@ const nodeSlice = createSlice({
             })
             .addCase(fetchAllNodesGlobal.fulfilled, (state, action) => {
                 state.nodes = action.payload;
+            })
+            .addCase(fetchEntranceNode.fulfilled, (state, action) => {
+                const { node } = action.payload;
+                if (node && !state.nodes.some(n => n.id === node.id)) {
+                    state.nodes.push(node);
+                }
             })
             .addCase(createNode.fulfilled, (state, action) => {
                 state.nodes.push(action.payload);

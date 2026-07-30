@@ -7,6 +7,7 @@ import {deleteNode} from "./nodeSlice.ts";
 
 interface RoomState {
     rooms: Room[];
+    navigableRooms: Room[];
     startRoom: Room | null;
     endRoom: Room | null;
     loading: boolean;
@@ -14,6 +15,7 @@ interface RoomState {
 
 const initialState: RoomState = {
     rooms: [],
+    navigableRooms: [],
     startRoom: null,
     endRoom: null,
     loading: false,
@@ -23,6 +25,14 @@ export const fetchRoomsByBuilding = createAsyncThunk<Room[], number>(
     'room/fetchByBuilding',
     async (buildingId) => {
         const response = await http.get<Room[]>(`/api/rooms?buildingId=${buildingId}`);
+        return response.data;
+    }
+);
+
+export const fetchNavigableRooms = createAsyncThunk<Room[]>(
+    'room/fetchNavigable',
+    async () => {
+        const response = await http.get<Room[]>('/api/rooms/navigable');
         return response.data;
     }
 );
@@ -68,6 +78,9 @@ const roomSlice = createSlice({
             })
             .addCase(fetchRoomsByBuilding.rejected, (state) => {
                 state.loading = false;
+            })
+            .addCase(fetchNavigableRooms.fulfilled, (state, action) => {
+                state.navigableRooms = action.payload;
             })
             .addCase(createRoom.fulfilled, (state, action) => {
                 state.rooms.push(action.payload);

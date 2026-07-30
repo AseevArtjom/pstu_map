@@ -43,6 +43,14 @@ public class NodeController {
                 .toList();
     }
 
+    @GetMapping("/entrance")
+    public ResponseEntity<NodeDto> getEntranceNode(@RequestParam Integer buildingId) {
+        return nodeService.getEntranceNode(buildingId)
+                .map(nodeService::convertToDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<NodeDto> createNode(@RequestBody NodeCreateDto dto) {
         Node node = nodeService.createNode(dto);
